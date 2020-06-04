@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Bus-Stop-Android-v3</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_map">Main Map</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_riderbus">My Buses</string>
+
+    <string name="menu_driverbus">My Bus Control</string>
+    <string name="menu_admincontrol">Admin Dashboard Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+
+    <string name="ReverseGeocode_API_key">5b89c4a4581b3a</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyBSx-KMCR6UbhmcTCvJiFhHaeah6DuMvqM</string>
+</resources>
