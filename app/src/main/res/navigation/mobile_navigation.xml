@@ -7,32 +7,32 @@
 
         <fragment
             android:id="@+id/nav_map"
-            android:name="com.example.bus_stop_android_v3.ui.Map.MapFragment"
+            android:name="com.gingergear.BusStopv3.ui.Map.MapFragment"
             android:label="@string/menu_map"
             tools:layout="@layout/map_fragment" />
 
         <fragment
             android:id="@+id/nav_settings"
-            android:name="com.example.bus_stop_android_v3.ui.Settings.fragment"
+            android:name="com.gingergear.BusStopv3.ui.Settings.fragment"
             android:label="@string/menu_settings"
             tools:layout="@layout/settings_fragment" />
 
         <fragment
             android:id="@+id/nav_myBuses"
-            android:name="com.example.bus_stop_android_v3.ui.RiderBus.fragment"
+            android:name="com.gingergear.BusStopv3.ui.RiderBus.fragment"
             android:label="@string/menu_riderbus"
             tools:layout="@layout/rider_bus_fragment" />
 
         <fragment
             android:id="@+id/nav_busSettings"
-            android:name="com.example.bus_stop_android_v3.ui.RiderBus.fragment"
+            android:name="com.gingergear.BusStopv3.ui.RiderBus.fragment"
             android:label="@string/menu_driverbus"
             tools:layout="@layout/driver_bus_fragment" />
 
         <fragment
             android:id="@+id/nav_adminDashBoard"
-            android:name="com.example.bus_stop_android_v3.ui.AdminPanel.fragment"
+            android:name="com.gingergear.BusStopv3.ui.AdminPanel.fragment"
             android:label="@string/menu_admincontrol"
-            tools:layout="@layout/Fragments/" />
+            tools:layout="@layout/adminsettings_fragment" />
 
 </navigation>

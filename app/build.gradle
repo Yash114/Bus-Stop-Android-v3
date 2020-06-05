@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.example.bus_stop_android_v3"
+        applicationId "com.gingergear.BusStopv3"
         minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
@@ -44,5 +44,4 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'org.apache.commons:commons-lang3:3.6'
     api 'org.jsoup:jsoup:1.12.1'
-
 }

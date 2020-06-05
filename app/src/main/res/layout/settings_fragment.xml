@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.Settings.fragment">
+    tools:context="com.gingergear.BusStopv3.ui.Settings.fragment">
 
     <TextView
         android:id="@+id/text_setting"
