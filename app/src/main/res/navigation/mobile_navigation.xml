@@ -25,7 +25,7 @@
 
         <fragment
             android:id="@+id/nav_busSettings"
-            android:name="com.gingergear.BusStopv3.ui.RiderBus.fragment"
+            android:name="com.gingergear.BusStopv3.ui.BusControl.BusControlFragment"
             android:label="@string/menu_driverbus"
             tools:layout="@layout/driver_bus_fragment" />
 

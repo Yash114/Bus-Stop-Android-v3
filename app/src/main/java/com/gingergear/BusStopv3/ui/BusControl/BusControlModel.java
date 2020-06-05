@@ -4,11 +4,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class model extends ViewModel {
+public class BusControlModel extends ViewModel {
 
     private MutableLiveData<String> mText;
 
-    public model() {
+    public BusControlModel() {
         mText = new MutableLiveData<>();
         mText.setValue("This is BusControl fragment");
     }

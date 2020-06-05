@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.gingergear.BusStopv3.ui.BusControl.fragment"
+    tools:context="com.gingergear.BusStopv3.ui.BusControl.BusControlFragment"
     android:orientation="vertical">
 
     <LinearLayout
@@ -15,6 +15,7 @@
         android:paddingBottom="24dp">
 
         <TextView
+            android:id="@+id/BusNumberDisplay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="16dp"
@@ -24,6 +25,7 @@
             android:textColor="#FFFFFF"/>
 
         <TextView
+            android:id="@+id/BusDriverName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Welcome Ms. Raines"
@@ -31,39 +33,57 @@
             android:textSize="16dp"
             android:textColor="#FFFFFF"/>
 
+
     </LinearLayout>
 
-    <LinearLayout
+    <Button
+        android:id="@+id/ActionButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Connect to your bus"
-            android:layout_marginHorizontal="48dp"
-            android:textSize="16dp"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/buttonshape"/>
+        android:text="Connect to your bus"
+        android:layout_marginHorizontal="48dp"
+        android:textSize="16dp"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/buttonshape" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Your Assigned Routes"
-            android:textAlignment="center"/>
+            android:textAlignment="center"
+            android:layout_marginBottom="16dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/listSchools"
+
+        <Button
+            android:id="@+id/route1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="vertical"
-            android:paddingVertical="30dp"
-            android:paddingHorizontal="50dp">
+            android:text="route"
+            android:layout_marginHorizontal="72dp"
+            android:visibility="invisible"/>
 
+        <Button
+            android:id="@+id/route2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="route"
+            android:layout_marginHorizontal="72dp"
+            android:visibility="invisible"/>
 
-        </androidx.recyclerview.widget.RecyclerView>
+        <Button
+            android:id="@+id/route3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="route"
+            android:layout_marginHorizontal="72dp"
+            android:visibility="invisible"/>
 
-    </LinearLayout>
+        <Button
+            android:id="@+id/route4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="route"
+            android:layout_marginHorizontal="72dp"
+            android:visibility="invisible"/>
 
 </LinearLayout>
