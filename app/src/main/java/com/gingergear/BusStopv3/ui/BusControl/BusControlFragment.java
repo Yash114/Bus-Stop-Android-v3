@@ -6,16 +6,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.gingergear.BusStopv3.Background_Update;
@@ -37,26 +44,46 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
 
     //objects
     private Button ActionButton;
+    private Button EndRouteButton;
+    private Button ResetRouteButton;
     private TextView BusNumberDisplay;
     private TextView BusDriverNameDisplay;
 
-    private static Button route_one;
-    private static Button route_two;
-    private static Button route_three;
-    private static Button route_four;
-    private static ArrayList<Button> buttons = new ArrayList<>();
-    private static ArrayList<String> routes;
+    private Button route_one;
+    private Button route_two;
+    private Button route_three;
+    private Button route_four;
+    public ArrayList<Button> buttons = new ArrayList<>();
+
+    private LinearLayout route_onel;
+    private LinearLayout route_twol;
+    private LinearLayout route_threel;
+    private LinearLayout route_fourl;
+    public ArrayList<LinearLayout> layouts = new ArrayList<>();
+
+    private CheckBox route_onec;
+    private CheckBox route_twoc;
+    private CheckBox route_threec;
+    private CheckBox route_fourc;
+    public ArrayList<CheckBox> checkBoxes = new ArrayList<>();
+
+    private static Boolean active = true;
 
     public static View root;
 
+    public static Intent intent;
+
+    private static Timer timer;
+
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        InfoClasses.Status.ActiveFragment = InfoClasses.Status.Driver;
+
         homeViewModel = ViewModelProviders.of(this).get(BusControlModel.class);
         root = inflater.inflate(R.layout.driver_bus_fragment, container, false);
 
-        //Internet Stuff
-        Internet.CreateWebSocketConnection();
-        Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber);
-        Internet.fetchYourRoutes(InfoClasses.busInfo.BusNumber);
+        intent = new Intent(getContext(), Background_Update.class);
+        active = true;
 
         //Initialize Bluetooth
         InfoClasses.Bluetooth.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -70,23 +97,87 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
         BusNumberDisplay = root.findViewById(R.id.BusNumberDisplay);
         BusDriverNameDisplay = root.findViewById(R.id.BusDriverName);
 
+        ResetRouteButton = root.findViewById(R.id.ResetRoutes);
+        EndRouteButton = root.findViewById(R.id.EndRoute);
+
         route_one = root.findViewById(R.id.route1);
         route_two = root.findViewById(R.id.route2);
         route_three = root.findViewById(R.id.route3);
         route_four = root.findViewById(R.id.route4);
+
+        route_onel = root.findViewById(R.id.route1_layout);
+        route_twol = root.findViewById(R.id.route2_layout);
+        route_threel = root.findViewById(R.id.route3_layout);
+        route_fourl = root.findViewById(R.id.route4_layout);
+
+        route_onec = root.findViewById(R.id.route1_check);
+        route_twoc = root.findViewById(R.id.route2_check);
+        route_threec = root.findViewById(R.id.route3_check);
+        route_fourc = root.findViewById(R.id.route4_check);
 
         buttons.add(route_one);
         buttons.add(route_two);
         buttons.add(route_three);
         buttons.add(route_four);
 
-        StartRefresh();
+        layouts.add(route_onel);
+        layouts.add(route_twol);
+        layouts.add(route_threel);
+        layouts.add(route_fourl);
+
+        checkBoxes.add(route_onec);
+        checkBoxes.add(route_twoc);
+        checkBoxes.add(route_threec);
+        checkBoxes.add(route_fourc);
+
+        if (InfoClasses.busInfo.AssignedBusRoutes != null) {
+
+            if (InfoClasses.Status.ActiveFragment == InfoClasses.Status.Driver) {
+
+                if (InfoClasses.busInfo.AssignedBusRoutes.size() != 0) {
+
+                    boolean alreadyDidOne = false;
+
+                    for (int x = 0; x < InfoClasses.busInfo.AssignedBusRoutes.size(); x++) {
+
+                        Log.e("tag", InfoClasses.busInfo.AssignedBusRoutes.get(x));
+
+                        layouts.get(x).setVisibility(View.VISIBLE);
+                        buttons.get(x).setText(InfoClasses.busInfo.AssignedBusRoutes.get(x));
+
+                        boolean proceed = false;
+                        if(InfoClasses.busInfo.AssignedBusRoutes.size() != 0) {
+                            for (String completedRoutes : InfoClasses.busInfo.CompletedBusRoutes) {
+                                if (completedRoutes.equals(InfoClasses.busInfo.AssignedBusRoutes.get(x))) {
+                                    alreadyDidOne = true;
+                                    proceed = true;
+                                    break;
+                                }
+                            }
+
+                            if (proceed) {
+                                checkBoxes.get(x).setChecked(true);
+                            }
+                        }
+                    }
+
+                    if(alreadyDidOne) {
+                        ResetRouteButton.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        }
+
+        if(InfoClasses.busInfo.CurrentRoute != null){
+            EndRouteButton.setVisibility(View.VISIBLE);
+        }
+
 
         //Initialize Buttons
+        ActionButton.setText(InfoClasses.Bluetooth.isConnected ? "Disconnect" : "Connect To your Bus");
         ActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                routes = InfoClasses.busInfo.AssignedBusRoutes;
                 if (!InfoClasses.Bluetooth.isConnected) {
                     InfoClasses.busInfo.connectToBus();
                     ActionButton.setText("Loading...");
@@ -94,96 +185,111 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                     new Timer().schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            if (InfoClasses.Bluetooth.isConnected) {
-                                ActionButton.setText("Disconnect");
+                            requireActivity().runOnUiThread(new Runnable() {
+                                public void run() {
+                                    if (InfoClasses.Bluetooth.isConnected) {
+                                        ActionButton.setText("Disconnect");
 
-                            } else {
-                                ActionButton.setText("Connect To your Bus");
+                                    } else {
+                                        ActionButton.setText("Connect To your Bus");
 
-                            }
+                                        Toast.makeText(getContext(), "Error Connecting to Bus " + InfoClasses.busInfo.BusNumber, Toast.LENGTH_LONG).show();
+                                        InfoClasses.busInfo.disconnectFromBus(getContext());
+                                        EndRouteButton.setVisibility(View.INVISIBLE);
+
+                                    }
+                                }
+                            });
                         }
                     }, 7000);
                 } else {
-                    InfoClasses.Bluetooth.disconnectBluetoothDevice();
+                    InfoClasses.Bluetooth.disconnectBluetoothDevice(getContext());
                     ActionButton.setText("Connect To your Bus");
                 }
             }
         });
 
+        ResetRouteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for(int x = 0; x < 4; x++){
+                    checkBoxes.get(x).setChecked(false);
+                    buttons.get(x).setClickable(true);
+
+                    InfoClasses.busInfo.CompletedBusRoutes.clear();
+                    EndRouteButton.setVisibility(View.INVISIBLE);
+
+                    ResetRouteButton.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        EndRouteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String completedRoute = InfoClasses.busInfo.CurrentRoute;
+
+                Log.e("tag", completedRoute);
+                InfoClasses.busInfo.CompletedBusRoutes.add(completedRoute);
+
+                int index = InfoClasses.busInfo.AssignedBusRoutes.lastIndexOf(InfoClasses.busInfo.CurrentRoute);
+                InfoClasses.busInfo.CurrentRoute = null;
+
+                checkBoxes.get(index).setChecked(true);
+                buttons.get(index).setClickable(false);
+                EndRouteButton.setVisibility(View.INVISIBLE);
+                ResetRouteButton.setVisibility(View.VISIBLE);
+
+                InfoClasses.Status.inRoute = false;
+            }
+        });
+
+        for(Button button : buttons){
+            timer = new Timer();
+
+            button.setOnClickListener(new View.OnClickListener() {
+
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public void onClick(View v) {
+
+                    if(InfoClasses.Bluetooth.isConnected) {
+                        int index = 0;
+                        for (Button button : buttons) {
+                            if (button == v) {
+
+                                EndRouteButton.setVisibility(View.VISIBLE);
+                                InfoClasses.busInfo.CurrentRoute = InfoClasses.busInfo.AssignedBusRoutes.get(index);
+                                Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber, InfoClasses.busInfo.CurrentRoute);
+                                getContext().startService(BusControlFragment.intent);
+
+                                Toast.makeText(getContext(), "Started Route: " + InfoClasses.busInfo.CurrentRoute, Toast.LENGTH_LONG).show();
+                                InfoClasses.Status.inRoute = true;
+                                timer.cancel();
+                                active = false;
+
+                            }
+
+
+                            index += 1;
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Connect to your bus first", Toast.LENGTH_LONG).show();
+
+                    }
+                }
+            });
+        }
+
         return root;
     }
 
-    private void StartRefresh() {
 
-        Timer timer = new Timer();
-        TimerTask myTask = new TimerTask() {
-            @Override
-            public void run() {
 
-                getActivity().runOnUiThread(new Runnable() {
-                    public void run() {
-
-                        if (InfoClasses.busInfo.AssignedBusRoutes != null) {
-
-                            boolean pass = false;
-
-                            if (routes != InfoClasses.busInfo.AssignedBusRoutes) {
-                                routes = InfoClasses.busInfo.AssignedBusRoutes;
-                                pass = true;
-
-                            } else {
-
-                                for (int x = 0; x < routes.size(); x++) {
-
-                                    if (!routes.get(x).equals(InfoClasses.busInfo.AssignedBusRoutes.get(x))) {
-                                        pass = true;
-
-                                    }
-                                }
-                            }
-
-                            if (pass) {
-
-                                if (routes.size() != 0) {
-
-                                    for (int x = 0; x < routes.size(); x++) {
-
-                                        BusControlFragment.buttons.get(x).setVisibility(View.VISIBLE);
-                                        BusControlFragment.buttons.get(x).setText(routes.get(x));
-                                        BusControlFragment.buttons.get(x).setOnClickListener(new View.OnClickListener() {
-
-                                            @Override
-                                            public void onClick(View v) {
-
-                                                int index = 0;
-                                                for (Button button : BusControlFragment.buttons) {
-
-                                                    if (button == v) {
-                                                        Intent intent;
-                                                        intent = new Intent(getContext(), Background_Update.class);
-
-                                                        InfoClasses.busInfo.CurrentRoute = routes.get(index);
-                                                        Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber, InfoClasses.busInfo.CurrentRoute);
-                                                        getContext().startService(intent);
-                                                    }
-
-                                                    index += 1;
-                                                }
-                                            }
-                                        });
-                                    }
-                                } else {
-
-                                    Log.e("websocket", "took too long to respond");
-
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        };
-        timer.schedule(myTask, 100, 250);
-
+    @Override
+    public void onDestroy() {
+        active = false;
+        super.onDestroy();
     }
 }

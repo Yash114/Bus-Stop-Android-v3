@@ -12,16 +12,18 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.gingergear.BusStopv3.InfoClasses;
 import com.gingergear.BusStopv3.R;
 
 public class fragment extends Fragment {
 
     private model homeViewModel;
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        homeViewModel =
-                ViewModelProviders.of(this).get(model.class);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        InfoClasses.Status.ActiveFragment = InfoClasses.Status.Admin;
+
+        homeViewModel = ViewModelProviders.of(this).get(model.class);
         View root = inflater.inflate(R.layout.adminsettings_fragment, container, false);
         final TextView textView = root.findViewById(R.id.text_adminSettings);
         homeViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {

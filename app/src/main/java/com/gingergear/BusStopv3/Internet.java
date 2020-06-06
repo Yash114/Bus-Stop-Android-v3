@@ -12,6 +12,8 @@ import android.util.Log;
 import android.webkit.CookieManager;
 import android.widget.Toast;
 
+import androidx.fragment.app.FragmentManager;
+
 import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
 import com.google.android.gms.maps.model.Dash;
 import com.google.android.gms.maps.model.Dot;
@@ -326,17 +328,5 @@ public class Internet {
     public static void CloseWebSocket(){
 
         ws.cancel();
-    }
-
-    public static void registerPSM(Context context, SharedPreferences.OnSharedPreferenceChangeListener listener){
-        SharedPreferences pref = context.getSharedPreferences(My_Pref_Name, Context.MODE_PRIVATE);
-        pref.registerOnSharedPreferenceChangeListener(listener);
-
-    }
-
-    public static void UMregisterPSM(Context context, SharedPreferences.OnSharedPreferenceChangeListener listener){
-        SharedPreferences pref = context.getSharedPreferences(My_Pref_Name, Context.MODE_PRIVATE);
-        pref.unregisterOnSharedPreferenceChangeListener(listener);
-
     }
 }

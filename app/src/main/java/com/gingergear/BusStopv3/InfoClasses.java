@@ -7,6 +7,7 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Looper;
 import android.util.Log;
@@ -28,12 +29,19 @@ public class InfoClasses {
         public static LatLng BusLocation;
         public static String BusDriver;
         public static ArrayList<String> AssignedBusRoutes;
+        public static ArrayList<String> CompletedBusRoutes = new ArrayList<>();
+
         public static String CurrentRoute;
 
-        public static void disconnectFromBus(){
+        public static void disconnectFromBus(Context context){
 
-            InfoClasses.Bluetooth.disconnectBluetoothDevice();
-            Internet.disconnectYourBus(BusNumber, BusLocation);
+            if(Bluetooth.isConnected) {
+                InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
+                Internet.disconnectYourBus(BusNumber, BusLocation);
+                context.stopService(BusControlFragment.intent);
+                Bluetooth.isConnected = false;
+            }
+
         }
 
         public static void connectToBus(){
@@ -70,7 +78,7 @@ public class InfoClasses {
         public static Boolean isSearching = false;
 
 
-        public static void disconnectBluetoothDevice() {
+        public static void disconnectBluetoothDevice(Context context) {
 
             if (isConnected) {
                 if(bluetoothGatt != null) {
@@ -79,6 +87,9 @@ public class InfoClasses {
                 }
                 Internet.CloseWebSocket();
                 isConnected = false;
+                InfoClasses.Status.inRoute = false;
+                context.stopService(BusControlFragment.intent);
+
             }
         }
 
@@ -93,7 +104,7 @@ public class InfoClasses {
                 @Override
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
-                    Log.i("bluetooth", result.getDevice().getName());
+                    Log.i("Bluetooth", result.getDevice().getName());
 
                 }
 
@@ -107,31 +118,31 @@ public class InfoClasses {
 
                         for (ScanResult result : results) {
                             if (result.getDevice().getName() != null) {
-                                Log.e("bluetooth", "Devices found: " + result.getDevice().getName());
+                                Log.e("Bluetooth", "Devices found: " + result.getDevice().getName());
                                 availableDevices.add(result.getDevice());
                             }
                         }
 
                         for (BluetoothDevice devices : availableDevices) {
 
-                            Log.i("bluetooth", devices.getName());
+                            Log.i("Bluetooth", devices.getName());
                             if (devices.getName().equals(BluetoothName)) {
                                 availableDevices.clear();
                                 connectedDevice = devices;
 
-                                Log.e("bluetooth", "Bluetooth Device Found");
+                                Log.e("Bluetooth", "Bluetooth Device Found");
 
                                 isConnected = true;
                                 isSearching = false;
 
                                 SaveData.SaveMyBus(true, busInfo.BusNumber);
-                                Log.i("bluetooth", "Successfully Connected to" + busInfo.BusNumber);
+                                Log.i("Bluetooth", "Successfully Connected to" + busInfo.BusNumber);
                                 return;
                             }
 
                         }
 
-                        Log.e("bluetooth", "Unsuccessfully Connected to " + busInfo.BusNumber);
+                        Log.e("Bluetooth", "Unsuccessfully Connected to " + busInfo.BusNumber);
                         isSearching = false;
 
                     }
@@ -141,14 +152,14 @@ public class InfoClasses {
                 public void onScanFailed(int errorCode) {
                     super.onScanFailed(errorCode);
 
-                    Log.e("bluetooth", "Unsuccessfully Connected to" + busInfo.BusNumber);
+                    Log.e(" Bluetooth", "Unsuccessfully Connected to" + busInfo.BusNumber);
 
                     isSearching = false;
 
                     switch (errorCode) {
 
                         case ScanCallback.SCAN_FAILED_ALREADY_STARTED:
-                            Log.e("bluetooth", "CAN_FAILED_ALREADY_STARTED");
+                            Log.e("Bluetooth", "CAN_FAILED_ALREADY_STARTED");
 
                             break;
 
@@ -176,7 +187,7 @@ public class InfoClasses {
 
             };
 
-            Log.d("bluetooth", "Bluetooth Scan Initiated");
+            Log.d("Bluetooth", "Bluetooth Scan Initiated");
 
             BLEscanner.startScan(null, scanSettings.setReportDelay(500).build(), BLEcallback);
 
@@ -185,7 +196,7 @@ public class InfoClasses {
                 public void run() {
 
                     BLEscanner.stopScan(BLEcallback);
-                    Log.e("bluetooth", "Bluetooth Scan Complete");
+                    Log.e("Bluetooth", "Bluetooth Scan Complete");
 
                     isSearching = false;
                 }
@@ -201,7 +212,15 @@ public class InfoClasses {
         static public int Disconnected = -3;
         static public int PAUSED = -4;
         static public int DONE = 1;
+        static public boolean inRoute = false;
         static public int Status = Not_Joined;
+
+        static public int Map = 0;
+        static public int Setting = 1;
+        static public int Rider = 2;
+        static public int Driver = 3;
+        static public int Admin = 4;
+        static public int ActiveFragment = 0;
 
     }
 
@@ -209,6 +228,15 @@ public class InfoClasses {
 
         static public int DRIVER = 0;
         static public int RIDER = 1;
-        static public int Rider_Driver = 1;
+        static public int Rider_Driver = DRIVER;
+
+        public static void ChangeToDriverMode(){
+
+            if(Rider_Driver == RIDER) {
+                Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber);
+                Internet.fetchYourRoutes(InfoClasses.busInfo.BusNumber);
+                Rider_Driver = DRIVER;
+            }
+        }
     }
 }

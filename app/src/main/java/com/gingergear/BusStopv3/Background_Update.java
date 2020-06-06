@@ -40,6 +40,7 @@ public class Background_Update extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
+        Log.e("Bluetooth", " hi");
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent resultIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -64,10 +65,10 @@ public class Background_Update extends IntentService {
         int DRIVER = 0;
         int RIDER = 1;
 
-        if (Rider_Driver == DRIVER) {
+        if (InfoClasses.Mode.Rider_Driver == DRIVER) {
             if (InfoClasses.Status.Status != InfoClasses.Status.PAUSED && InfoClasses.Status.Status != InfoClasses.Status.Disconnected && InfoClasses.Status.Status != InfoClasses.Status.DONE) {
 
-                InfoClasses.Bluetooth.bluetoothGatt  = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, false, new BluetoothGattCallback() {
+                InfoClasses.Bluetooth.bluetoothGatt = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, false, new BluetoothGattCallback() {
                     @Override
                     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
@@ -223,14 +224,11 @@ public class Background_Update extends IntentService {
         }
 
         InfoClasses.Status.Status = InfoClasses.Status.Disconnected;
-        Internet.CloseWebSocket();
-
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(400);
 
-        InfoClasses.Bluetooth.disconnectBluetoothDevice();
+        InfoClasses.busInfo.disconnectFromBus(this);
 
-        stopSelf();
         Thread.currentThread().interrupt();
 
     }
