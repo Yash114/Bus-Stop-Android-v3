@@ -73,7 +73,7 @@ public class Internet {
 
     //Necessary data for reading from the WEBQUERY website
     private static String WebQuery_URL = "https://api.busstopapi.com/webquery-request?";
-    private String WebQuery_SessionID;
+    private static String WebQuery_SessionID;
 
     //Websocket Stuff
     private static String WebQuery_path = "wss://60xx5h0jma.execute-api.us-east-2.amazonaws.com/dev";
@@ -95,6 +95,284 @@ public class Internet {
     //Dependant Variables
     private static Boolean Connected = true;
     public static String My_Pref_Name = "byebye";
+
+    public Internet(){ }
+
+    static class ReverseGeoCode extends AsyncTask<Double, Void, JSONObject> {
+
+        public String houseNumber = "";
+        public String County = "";
+        public String Street = "";
+        public String Addyy = "";
+
+        @SuppressLint("WrongThread")
+        @Override
+        protected JSONObject doInBackground(Double... coordinates) {
+
+            if (Connected) {
+
+                String str = locationIQ_URL + "?key=" + getLocationIQ_KEY + "&lat=" + coordinates[0] + "&lon=" + coordinates[1] + "&format=json";
+
+                HttpURLConnection urlConn;
+                BufferedReader bufferedReader = null;
+                try {
+                    URL url = new URL(str);
+                    urlConn = (HttpURLConnection) url.openConnection();
+
+                    bufferedReader = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+
+                    StringBuilder stringBuffer = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuffer.append(line);
+                    }
+
+                    Log.i("intern", "Reverse Geocode: Successful");
+
+                    urlConn.disconnect();
+
+                    return new JSONObject(stringBuffer.toString());
+
+                } catch (Exception ex) {
+
+                    Log.e("intern", "reverseGeocode:" + ex.getMessage());
+
+                    return null;
+                } finally {
+
+                    if (bufferedReader != null) {
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        return null;
+
+                    }
+                }
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject response) {
+            if (response != null) {
+                try {
+
+                    houseNumber = response.getJSONObject("address").getString("house_number");
+                    Street = response.getJSONObject("address").getString("road");
+                    County = response.getJSONObject("address").getString("county");
+
+                    char[] charArray = Street.toCharArray();
+                    String[] addy1 = {"", "", "", "", ""};
+
+                    Boolean Switch = false;
+                    int u = 0;
+
+                    if (houseNumber.contains(",")) {
+
+                        houseNumber = houseNumber.substring(0, houseNumber.indexOf(","));
+                    }
+
+                    for (int i = 0; i < charArray.length; i++) {
+
+                        if (charArray[i] != ' ') {
+
+                            addy1[u] = addy1[u] + charArray[i];
+                        } else {
+
+                            u += 1;
+                        }
+                    }
+
+                    for (int i = 0; i <= u; i++) {
+
+                        Addyy = Addyy + "+" + addy1[i];
+                    }
+
+                    Addyy = houseNumber + Addyy;
+
+                    mAddress_info[0] = houseNumber + " " + Street;
+                    mAddress_info[1] = Addyy;
+                    mAddress_info[2] = houseNumber;
+                    mAddress_info[3] = Street;
+
+                    InfoClasses.myInfo.Address = mAddress_info[0];
+                    SaveData.SaveMyHomeAddy(mAddress_info[0]);
+
+                    Log.i("intern", "Reverse Geocode JSON: Successful");
+                    Log.i("intern", "Reverse Geocode JSON: I gathered your address is: " + mAddress_info[0]);
+
+                    Success[reverseGeoCode_Success] = true;
+
+                } catch (JSONException ex) {
+                    Log.e("intern", "Reverse Geocode JSON: ERROR");
+                    Log.e("intern", ex.getMessage());
+
+                }
+            }
+        }
+    }
+
+    public static class GetZonedSchools extends AsyncTask<String, Void, JSONObject> {
+
+        String[][] ZonedSchools = new String[5][2];
+
+        int Retry = 0;
+        String data;
+
+        Boolean Marker = false;
+        Boolean dumbBool = false;
+
+        Context context;
+
+        public GetZonedSchools(Context c){
+            context = c;
+        }
+
+        @SuppressLint("WrongThread")
+        @Override
+
+        protected JSONObject doInBackground(String... strings) {
+
+            if (Connected) {
+                String theURL = WebQuery_URL + "Address=" + URLEncoder.encode(strings[0]) + "&County=Henry";
+
+                Log.e("intern", ":"+theURL+";");
+                data = strings[0];
+
+                try {
+                    URL url = new URL(theURL);
+
+                    HttpURLConnection urlConn;
+                    urlConn = (HttpURLConnection) url.openConnection();
+
+                    InputStream byteStream = urlConn.getInputStream();
+                    Reader targetReader = new InputStreamReader(byteStream);
+
+                    // open the url stream, wrap it an a few "readers"
+                    BufferedReader reader = new BufferedReader(targetReader);
+
+                    String line;
+                    StringBuffer sb = new StringBuffer();
+
+
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                    }
+
+                    String data = sb.toString();
+                    JSONObject jObject = new JSONObject(data);
+
+                    for(int q = 0; q < 3; q++) {
+
+                        String number = String.valueOf(q);
+
+                        ZonedSchools[q][0] = jObject.getJSONObject(number).getString("SchoolURL");
+                        ZonedSchools[q][1] = jObject.getJSONObject(number).getString("School");
+
+                        Log.i("intern", ZonedSchools[q][1]);
+                        Log.i("intern", ZonedSchools[q][0]);
+                    }
+
+                    WebQuery_SessionID = jObject.getString("cookie");
+
+                    if (ZonedSchools[0][0] != null) {
+
+                        Marker = true;
+                    }
+
+                    reader.close();
+                    urlConn.disconnect();
+                    // close our reader
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                    Log.e("intern", "GetZonedSchools :  malformed URL!");
+                    Log.e("intern", e.getMessage());
+
+                    Retry = 5;
+                    dumbBool = true;
+
+                } catch (FileNotFoundException e) {
+
+                    Log.e("intern", "GetZonedSchools: The website is under maintenance");
+                    Log.e("intern", e.getMessage());
+
+                    Retry = 5;
+                    dumbBool = true;
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e("intern", "GetZonedSchools: ERROR");
+                    Log.e("intern", e.getMessage());
+
+                    if (e.getMessage().equals("Host unreachable")) {
+
+                        Log.e("intern", "GetZonedSchools: You have a proxy blocking this website or it is unavaliable");
+                    }
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+
+                return null;
+            } else {
+
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            super.onPostExecute(jsonObject);
+
+            if (Marker) {
+
+                for (int i = 0; i < 3; i++) {
+
+                    School_Name.add(ZonedSchools[i][1]);
+                    School_URL.add(ZonedSchools[i][0]);
+
+                    Log.e("intern", ZonedSchools[i][1]);
+                }
+
+
+                if (School_Name.get(0) != null) {
+
+                    Log.i("intern", "GetZonedSchools: Successful");
+//                    RiderFrag.SummonSchoolButtons(mContext, Internet.this);
+
+                    Success[getZonedSchool_Success] = true;
+                    InfoClasses.myInfo.ZonedSchools = School_Name;
+                    InfoClasses.myInfo.SchoolURL = School_URL;
+
+                } else {
+
+                    Log.e("intern", "GetZonedSchools: ERROR");
+                    Log.e("intern", "GetZonedSchools: You are not in a residential area");
+
+                    Toast.makeText(context, "Please move to a residential area", Toast.LENGTH_LONG).show();
+                }
+
+            } else {
+
+                Log.e("intern", "GetZonedSchools: ERROR");
+                Log.e("intern", "GetZonedSchools: The servers are down");
+
+                Toast.makeText(context, "Server Error", Toast.LENGTH_LONG).show();
+
+//                RiderFrag.endSearch();
+            }
+
+            return;
+        }
+    }
 
     public static void sendLocations(LatLng latLng, String busRouteID, String busNumber){
 

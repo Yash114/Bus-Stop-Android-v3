@@ -62,8 +62,8 @@ public class Background_Update extends IntentService {
         LatLng Temp = null;
 
         int Rider_Driver = InfoClasses.Mode.Rider_Driver;
-        int DRIVER = 0;
-        int RIDER = 1;
+        int DRIVER = 1;
+        int RIDER = 0;
 
         if (InfoClasses.Mode.Rider_Driver == DRIVER) {
             if (InfoClasses.Status.Status != InfoClasses.Status.PAUSED && InfoClasses.Status.Status != InfoClasses.Status.Disconnected && InfoClasses.Status.Status != InfoClasses.Status.DONE) {
@@ -228,7 +228,6 @@ public class Background_Update extends IntentService {
         v.vibrate(400);
 
         InfoClasses.busInfo.disconnectFromBus(this);
-
         Thread.currentThread().interrupt();
 
     }

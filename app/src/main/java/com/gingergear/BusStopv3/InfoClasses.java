@@ -17,6 +17,7 @@ import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -62,8 +63,13 @@ public class InfoClasses {
     public static class myInfo {
 
         public static List<String> BusRoutes;
+        public static List<String> ZonedSchools;
+        public static List<String> SchoolURL;
+
         public static String Address;
         public static LatLng CurrentLocation;
+        public static LatLng savedLocation = null;
+
 
     }
 
@@ -135,7 +141,6 @@ public class InfoClasses {
                                 isConnected = true;
                                 isSearching = false;
 
-                                SaveData.SaveMyBus(true, busInfo.BusNumber);
                                 Log.i("Bluetooth", "Successfully Connected to" + busInfo.BusNumber);
                                 return;
                             }
@@ -226,9 +231,9 @@ public class InfoClasses {
 
     public static class Mode {
 
-        static public int DRIVER = 0;
-        static public int RIDER = 1;
-        static public int Rider_Driver = DRIVER;
+        static public int DRIVER = 1;
+        static public int RIDER = 0;
+        static public int Rider_Driver = RIDER;
 
         public static void ChangeToDriverMode(){
 
