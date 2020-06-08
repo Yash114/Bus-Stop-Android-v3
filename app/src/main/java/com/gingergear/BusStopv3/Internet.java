@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.util.Log;
 import android.webkit.CookieManager;
 import android.widget.Toast;
@@ -39,6 +40,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -374,6 +376,96 @@ public class Internet {
         }
     }
 
+    public static class GetBusData extends AsyncTask<String, Void, JSONObject> {
+
+        Hashtable<String,String> TableReadings = new Hashtable<>();
+        Context mcontext;
+
+        public GetBusData(Context context) {
+
+            mcontext = context;
+        }
+
+
+        @SuppressLint("WrongThread")
+        @Override
+        protected JSONObject doInBackground(String... targetURL) {
+
+            if (Connected) {
+
+                String urlStrings = WebQuery_URL + "SchoolURL=" +  URLEncoder.encode(targetURL[0]) + "&Cookie=" + WebQuery_SessionID + "&County=Henry";
+                String line;
+
+                Log.e("intern", urlStrings);
+
+                try {
+
+                    URL url = new URL(urlStrings);
+
+                    HttpURLConnection urlConn = null;
+                    urlConn = (HttpURLConnection) url.openConnection();
+
+                    InputStream byteStream = urlConn.getInputStream();
+                    Reader targetReader = new InputStreamReader(byteStream);
+
+                    // open the url stream, wrap it an a few "readers"
+                    BufferedReader reader = new BufferedReader(targetReader);
+
+                    StringBuffer sb = new StringBuffer();
+
+
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
+                    }
+
+                    String data = sb.toString();
+                    JSONObject jObject = new JSONObject(data);
+                    JSONObject jj = jObject.getJSONObject("ReturnedData");
+                    String index;
+
+                    for(int q = 0; q < 4; q++) {
+
+                        index = String.valueOf(q);
+                        TableReadings.put("stop time" + q, jj.getJSONObject("Stop Time").getString(index));
+                        TableReadings.put("description" + q, jj.getJSONObject("Stop Description").getString(index));
+                        TableReadings.put("distance" + q, jj.getJSONObject("Distance To Stop").getString(index));
+                        TableReadings.put("bus number" + q, jj.getJSONObject("Bus Number").getString(index));
+                        TableReadings.put("service id" + q, jj.getJSONObject("Service ID").getString(index));
+                        TableReadings.put("run id" + q, jj.getJSONObject("Run ID").getString(index));
+
+
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                if (TableReadings.get("run id0") != null) {
+
+                    Log.i("intern", "GetBusData: Successful");
+
+                    Log.i("intern", TableReadings.get("run id0"));
+
+//                    InfoClasses.myInfo. = TableReadings[3][0];
+//                    SaveData.SaveBus(true, urlStrings, MainActivity.JoinedBus);
+                }
+
+                return null;
+            } else {
+
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+
+            super.onPostExecute(jsonObject);
+//            joinRoute_AsRider(TableReadings.get("run id0"));
+        }
+    }
+
     public static void sendLocations(LatLng latLng, String busRouteID, String busNumber){
 
         if(SocketConnected) {
@@ -446,6 +538,28 @@ public class Internet {
     }
 
     public static void joinRoute_AsRider(String busRouteID){
+
+        if(SocketConnected) {
+
+            Log.e("websocket", busRouteID);
+            String county = "Henry";
+
+            String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"routeID\" : \"" +
+                    busRouteID + "\"}}";
+
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    //TODO fix this method and add compatible api
+    public static void joinRoutes_AsRider(String[] busRouteID){
 
         if(SocketConnected) {
 

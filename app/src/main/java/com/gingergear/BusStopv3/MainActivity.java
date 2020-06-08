@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 InfoClasses.myInfo.savedLocation = savedPos;
                 InfoClasses.myInfo.CurrentLocation = savedPos;
                 InfoClasses.myInfo.Address = SaveData.readMySavedAddy();
+                InfoClasses.myInfo.BusRoutes = saveData.ReadMySavedRoutes();
 
                 Log.e("tag", "git");
             }

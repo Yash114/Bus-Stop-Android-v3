@@ -62,7 +62,7 @@ public class InfoClasses {
 
     public static class myInfo {
 
-        public static List<String> BusRoutes;
+        public static List<String> BusRoutes = new ArrayList<>();
         public static List<String> ZonedSchools;
         public static List<String> SchoolURL;
 

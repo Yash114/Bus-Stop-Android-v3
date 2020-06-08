@@ -4,7 +4,140 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.gingergear.BusStopv3.ui.Map.MapFragment">
+    tools:context="com.gingergear.BusStopv3.ui.Map.MapFragment"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="172dp"
+        android:background="@drawable/ic_top_01"
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="16dp"
+            android:text="Your Buses"
+            android:textAlignment="center"
+            android:textSize="42dp"
+            android:textColor="#FFFFFF"/>
+
+        <TextView
+            android:id="@+id/statusBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Everything is configured correctly"
+            android:textAlignment="center"
+            android:textSize="16dp"
+            android:textColor="#FFFFFF"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/JoinedRoute1"
+        android:visibility="gone"
+        android:layout_margin="8dp">
+
+
+        <TextView
+            android:id="@+id/JoinedRoute1_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="route"
+            android:layout_marginLeft="72dp"
+            android:layout_marginRight="24dp"
+            android:visibility="visible"
+            android:layout_weight="5"
+            android:textSize="36dp"
+            android:textAlignment="center"/>
+
+        <CheckBox
+            android:id="@+id/JoinedRoute1_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="24dp"
+            android:clickable="false"/>
+
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/firstbar"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:visibility="gone"
+        android:background="@android:color/darker_gray"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/JoinedRoute2"
+        android:visibility="gone"
+        android:layout_margin="8dp">
+
+
+        <TextView
+            android:id="@+id/JoinedRoute2_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="route"
+            android:layout_marginLeft="72dp"
+            android:layout_marginRight="24dp"
+            android:visibility="visible"
+            android:layout_weight="5"
+            android:textSize="36dp"
+            android:textAlignment="center"/>
+
+        <CheckBox
+            android:id="@+id/JoinedRoute2_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="24dp"
+            android:clickable="false"/>
+
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/secondbar"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:visibility="gone"
+        android:background="@android:color/darker_gray"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/JoinedRoute3"
+        android:visibility="gone"
+        android:layout_margin="8dp">
+
+
+        <TextView
+            android:id="@+id/JoinedRoute3_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="route"
+            android:layout_marginLeft="72dp"
+            android:layout_marginRight="24dp"
+            android:visibility="visible"
+            android:layout_weight="5"
+            android:textSize="36dp"
+            android:textAlignment="center"/>
+
+        <CheckBox
+            android:id="@+id/JoinedRoute3_check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="24dp"
+            android:clickable="false" />
+
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/newBusButton"
@@ -15,5 +148,39 @@
         android:textColor="#FFFFFF"
         android:textSize="16dp"
         android:layout_margin="16dp"/>
+
+    <Button
+        android:id="@+id/busone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Put label here"
+        android:background="@drawable/buttonshape"
+        android:textColor="#FFFFFF"
+        android:textSize="16dp"
+        android:layout_margin="4dp"
+        android:visibility="gone"/>
+
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="Put label here"
+        android:id="@+id/bustwo"
+        android:background="@drawable/buttonshape"
+        android:textColor="#FFFFFF"
+        android:textSize="16dp"
+        android:layout_margin="4dp"
+        android:visibility="gone"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/busthree"
+        android:text="Put label here"
+        android:background="@drawable/buttonshape"
+        android:textColor="#FFFFFF"
+        android:textSize="16dp"
+        android:layout_margin="4dp"
+        android:visibility="gone"/>
+
 
 </LinearLayout>
