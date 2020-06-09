@@ -1,15 +1,9 @@
 package com.gingergear.BusStopv3.ui.BusControl;
 
 import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,20 +15,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.gingergear.BusStopv3.Background_Update;
 import com.gingergear.BusStopv3.InfoClasses;
 import com.gingergear.BusStopv3.Internet;
-import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -78,6 +67,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Driver;
+        InfoClasses.Mode.ChangeToDriverMode();
 
         homeViewModel = ViewModelProviders.of(this).get(BusControlModel.class);
         root = inflater.inflate(R.layout.driver_bus_fragment, container, false);
@@ -130,25 +120,25 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
         checkBoxes.add(route_threec);
         checkBoxes.add(route_fourc);
 
-        if (InfoClasses.busInfo.AssignedBusRoutes != null) {
+        if (InfoClasses.DriverBus.AssignedBusRoutes != null) {
 
             if (InfoClasses.Status.ActiveFragment == InfoClasses.Status.Driver) {
 
-                if (InfoClasses.busInfo.AssignedBusRoutes.size() != 0) {
+                if (InfoClasses.DriverBus.AssignedBusRoutes.size() != 0) {
 
                     boolean alreadyDidOne = false;
 
-                    for (int x = 0; x < InfoClasses.busInfo.AssignedBusRoutes.size(); x++) {
+                    for (int x = 0; x < InfoClasses.DriverBus.AssignedBusRoutes.size(); x++) {
 
-                        Log.e("tag", InfoClasses.busInfo.AssignedBusRoutes.get(x));
+                        Log.e("tag", InfoClasses.DriverBus.AssignedBusRoutes.get(x));
 
                         layouts.get(x).setVisibility(View.VISIBLE);
-                        buttons.get(x).setText(InfoClasses.busInfo.AssignedBusRoutes.get(x));
+                        buttons.get(x).setText(InfoClasses.DriverBus.AssignedBusRoutes.get(x));
 
                         boolean proceed = false;
-                        if(InfoClasses.busInfo.AssignedBusRoutes.size() != 0) {
-                            for (String completedRoutes : InfoClasses.busInfo.CompletedBusRoutes) {
-                                if (completedRoutes.equals(InfoClasses.busInfo.AssignedBusRoutes.get(x))) {
+                        if(InfoClasses.DriverBus.AssignedBusRoutes.size() != 0) {
+                            for (String completedRoutes : InfoClasses.DriverBus.CompletedBusRoutes) {
+                                if (completedRoutes.equals(InfoClasses.DriverBus.AssignedBusRoutes.get(x))) {
                                     alreadyDidOne = true;
                                     proceed = true;
                                     break;
@@ -168,7 +158,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
             }
         }
 
-        if(InfoClasses.busInfo.CurrentRoute != null){
+        if(InfoClasses.DriverBus.CurrentRoute != null){
             EndRouteButton.setVisibility(View.VISIBLE);
         }
 
@@ -179,7 +169,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
             @Override
             public void onClick(View v) {
                 if (!InfoClasses.Bluetooth.isConnected) {
-                    InfoClasses.busInfo.connectToBus();
+                    InfoClasses.DriverBus.connectToBus();
                     ActionButton.setText("Loading...");
 
                     new Timer().schedule(new TimerTask() {
@@ -193,8 +183,8 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                     } else {
                                         ActionButton.setText("Connect To your Bus");
 
-                                        Toast.makeText(getContext(), "Error Connecting to Bus " + InfoClasses.busInfo.BusNumber, Toast.LENGTH_LONG).show();
-                                        InfoClasses.busInfo.disconnectFromBus(getContext());
+                                        Toast.makeText(getContext(), "Error Connecting to Bus " + InfoClasses.DriverBus.BusNumber, Toast.LENGTH_LONG).show();
+                                        InfoClasses.DriverBus.disconnectFromBus(getContext());
                                         EndRouteButton.setVisibility(View.INVISIBLE);
 
                                     }
@@ -216,7 +206,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                     checkBoxes.get(x).setChecked(false);
                     buttons.get(x).setClickable(true);
 
-                    InfoClasses.busInfo.CompletedBusRoutes.clear();
+                    InfoClasses.DriverBus.CompletedBusRoutes.clear();
                     EndRouteButton.setVisibility(View.INVISIBLE);
 
                     ResetRouteButton.setVisibility(View.GONE);
@@ -228,13 +218,13 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
             @Override
             public void onClick(View v) {
 
-                String completedRoute = InfoClasses.busInfo.CurrentRoute;
+                String completedRoute = InfoClasses.DriverBus.CurrentRoute;
 
                 Log.e("tag", completedRoute);
-                InfoClasses.busInfo.CompletedBusRoutes.add(completedRoute);
+                InfoClasses.DriverBus.CompletedBusRoutes.add(completedRoute);
 
-                int index = InfoClasses.busInfo.AssignedBusRoutes.lastIndexOf(InfoClasses.busInfo.CurrentRoute);
-                InfoClasses.busInfo.CurrentRoute = null;
+                int index = InfoClasses.DriverBus.AssignedBusRoutes.lastIndexOf(InfoClasses.DriverBus.CurrentRoute);
+                InfoClasses.DriverBus.CurrentRoute = null;
 
                 checkBoxes.get(index).setChecked(true);
                 buttons.get(index).setClickable(false);
@@ -260,11 +250,11 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                             if (button == v) {
 
                                 EndRouteButton.setVisibility(View.VISIBLE);
-                                InfoClasses.busInfo.CurrentRoute = InfoClasses.busInfo.AssignedBusRoutes.get(index);
-                                Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber, InfoClasses.busInfo.CurrentRoute);
+                                InfoClasses.DriverBus.CurrentRoute = InfoClasses.DriverBus.AssignedBusRoutes.get(index);
+                                Internet.joinRoute_AsBus(InfoClasses.DriverBus.BusNumber, InfoClasses.DriverBus.CurrentRoute);
                                 getContext().startService(BusControlFragment.intent);
 
-                                Toast.makeText(getContext(), "Started Route: " + InfoClasses.busInfo.CurrentRoute, Toast.LENGTH_LONG).show();
+                                Toast.makeText(getContext(), "Started Route: " + InfoClasses.DriverBus.CurrentRoute, Toast.LENGTH_LONG).show();
                                 InfoClasses.Status.inRoute = true;
                                 timer.cancel();
                                 active = false;

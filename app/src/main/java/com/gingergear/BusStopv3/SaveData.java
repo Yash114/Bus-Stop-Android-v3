@@ -35,7 +35,7 @@ public class SaveData {
     private static String File_Name;
     static String filename = "39r8ybciu1oni0ev2g979ebcu1w";
 
-    public SaveData(Context context, String Filename) {
+    public SaveData(Context context) {
 
         mContext = context;
     }
@@ -47,9 +47,11 @@ public class SaveData {
         editor.putString("HomePos-lng", Double.toString(latLng.longitude));
 
         editor.apply();
+        Log.i("Save", "Successfully saved: your home coordinates");
+
     }
 
-    public static LatLng readMySavedPos() {
+    public static LatLng ReadMySavedPos() {
 
         String lat = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("HomePos-lat", null);
         String lng = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("HomePos-lng", null);
@@ -68,14 +70,15 @@ public class SaveData {
         editor.putString("Address", addy);
 
         editor.apply();
+        Log.i("Save", "Successfully saved: " + addy + " as you address");
     }
 
-    public static String readMySavedAddy() {
+    public static String ReadMySavedAddy() {
 
         return mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("Address", null);
     }
 
-    public static void SaveBusRoute(List<String> routes){
+    public static void SaveBusRoute(List<String> routes, List<String> schools){
 
         Set<String> stringSet = new Set<String>() {
             @Override
@@ -147,28 +150,130 @@ public class SaveData {
             }
         };
 
-        stringSet.add(routes.get(0) == null ? "~" : routes.get(0));
-        stringSet.add(routes.get(0) == null ? "~" : routes.get(0));
-        stringSet.add(routes.get(0) == null ? "~" : routes.get(0));
+        stringSet.add(routes.get(0));
+        stringSet.add(routes.get(1));
+        stringSet.add(routes.get(2));
+
+        Set<String> stringSet2 = new Set<String>() {
+            @Override
+            public int size() {
+                return 0;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return false;
+            }
+
+            @Override
+            public boolean contains(@Nullable Object o) {
+                return false;
+            }
+
+            @NonNull
+            @Override
+            public Iterator<String> iterator() {
+                return null;
+            }
+
+            @NonNull
+            @Override
+            public Object[] toArray() {
+                return new Object[0];
+            }
+
+            @NonNull
+            @Override
+            public <T> T[] toArray(@NonNull T[] a) {
+                return null;
+            }
+
+            @Override
+            public boolean add(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean remove(@Nullable Object o) {
+                return false;
+            }
+
+            @Override
+            public boolean containsAll(@NonNull Collection<?> c) {
+                return false;
+            }
+
+            @Override
+            public boolean addAll(@NonNull Collection<? extends String> c) {
+                return false;
+            }
+
+            @Override
+            public boolean retainAll(@NonNull Collection<?> c) {
+                return false;
+            }
+
+            @Override
+            public boolean removeAll(@NonNull Collection<?> c) {
+                return false;
+            }
+
+            @Override
+            public void clear() {
+
+            }
+        };
+
+        stringSet2.add(schools.get(0));
+        stringSet2.add(schools.get(1));
+        stringSet2.add(schools.get(2));
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
         editor.putStringSet("SavedUserRoutes", stringSet);
+        editor.putStringSet("SavedUserSchools", stringSet2);
 
         editor.apply();
+        Log.i("Save", "Successfully saved: Your default routes and schools");
+
     }
 
-    public static ArrayList<String> ReadMySavedRoutes(){
+    public static ArrayList<String>[] ReadMySavedRoutes(){
 
         //remember this is returns a SET!! Use an iterator to retrieve data
         if(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null) != null) {
             String[] stuff = (String[]) mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null).toArray();
             ArrayList<String> out = new ArrayList<>();
 
-            Collections.addAll(out, stuff);
+            String[] stuff1 = (String[]) mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserSchools", null).toArray();
+            ArrayList<String> out1 = new ArrayList<>();
 
-            return out;
+            Collections.addAll(out, stuff);
+            Collections.addAll(out1, stuff1);
+
+            ArrayList<String>[] bye = new ArrayList[]{out, out1};
+
+            return bye;
         }
 
         return null;
+    }
+
+    public static void SaveAppMode(int mode){
+
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
+        editor.putInt("mode", mode);
+
+        editor.apply();
+        Log.i("Save", "Successfully saved: " + mode + "as you default mode");
+
+    }
+
+    public static int ReadAppMode() {
+
+        if(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).contains("mode") ){
+            return mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getInt("mode", -1);
+        }
+
+        return -1;
     }
 }

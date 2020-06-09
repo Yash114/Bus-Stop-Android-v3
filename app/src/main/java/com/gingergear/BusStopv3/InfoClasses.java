@@ -8,23 +8,34 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Looper;
+import android.graphics.Interpolator;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
-import android.widget.Toast;
+import android.view.animation.BounceInterpolator;
 
 import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.gingergear.BusStopv3.SaveData.ReadMySavedPos;
+
 public class InfoClasses {
 
-    public static class busInfo {
+    public static class DriverBus {
 
         public static String BusNumber = "14-71";
         public static LatLng BusLocation;
@@ -34,9 +45,9 @@ public class InfoClasses {
 
         public static String CurrentRoute;
 
-        public static void disconnectFromBus(Context context){
+        public static void disconnectFromBus(Context context) {
 
-            if(Bluetooth.isConnected) {
+            if (Bluetooth.isConnected) {
                 InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
                 Internet.disconnectYourBus(BusNumber, BusLocation);
                 context.stopService(BusControlFragment.intent);
@@ -45,7 +56,7 @@ public class InfoClasses {
 
         }
 
-        public static void connectToBus(){
+        public static void connectToBus() {
 
             MainActivity mainActivity = new MainActivity();
             mainActivity.runOnUiThread(new Runnable() {
@@ -60,11 +71,65 @@ public class InfoClasses {
 
     }
 
+    public static class Buses {
+
+        public static LatLng BusLocation;
+        public static String School;
+        public static String BusNumber;
+        public static String Route;
+        public static Marker marker;
+
+        public Buses(String busNumber, LatLng busLocation, String school, Context context){
+
+            BusNumber = busNumber;
+            BusLocation = busLocation;
+            School = school;
+
+            marker = MainActivity.mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromBitmap(MainActivity.getBitmapFromVectorDrawable(context, R.drawable.bus)))
+                    .position(BusLocation)
+                    .title(BusNumber)
+                    .snippet("Runnning for " + School)
+                    .visible(true));
+        }
+
+        public static void moveBusTo(final LatLng destination) {
+
+            final Handler handler = new Handler();
+            final long start = SystemClock.uptimeMillis();
+            final long duration = 1000;
+
+            final BounceInterpolator interpolator = new BounceInterpolator();
+            marker.setVisible(true);
+
+            double Lat = destination.latitude - marker.getPosition().latitude;
+            double Lng = destination.longitude - marker.getPosition().longitude;
+            final LatLng begin = marker.getPosition();
+            final LatLng distanceCoor = new LatLng(Lat, Lng);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    long elapsed = SystemClock.uptimeMillis() - start;
+                    float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+
+                    marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration),  begin.longitude + elapsed * (distanceCoor.longitude / duration)));
+                    Log.e("tag", Float.toString(t));
+
+                    if (t > 0.0) {
+                        // Post again 16ms later.
+                        handler.postDelayed(this, 16);
+                    }
+                }
+            });
+        }
+    }
+
     public static class myInfo {
 
-        public static List<String> BusRoutes = new ArrayList<>();
-        public static List<String> ZonedSchools;
-        public static List<String> SchoolURL;
+        public static List<String> BusRoutes = new ArrayList<>(Collections.nCopies(3, "null"));
+        public static List<String> ZonedSchools = new ArrayList<>();
+        public static List<String> SchoolURL = new ArrayList<>();
+        public static List<Buses> myBuses = new ArrayList<>();
 
         public static String Address;
         public static LatLng CurrentLocation;
@@ -87,7 +152,7 @@ public class InfoClasses {
         public static void disconnectBluetoothDevice(Context context) {
 
             if (isConnected) {
-                if(bluetoothGatt != null) {
+                if (bluetoothGatt != null) {
                     bluetoothGatt.disconnect();
                     bluetoothGatt.close();
                 }
@@ -141,13 +206,13 @@ public class InfoClasses {
                                 isConnected = true;
                                 isSearching = false;
 
-                                Log.i("Bluetooth", "Successfully Connected to" + busInfo.BusNumber);
+                                Log.i("Bluetooth", "Successfully Connected to" + DriverBus.BusNumber);
                                 return;
                             }
 
                         }
 
-                        Log.e("Bluetooth", "Unsuccessfully Connected to " + busInfo.BusNumber);
+                        Log.e("Bluetooth", "Unsuccessfully Connected to " + DriverBus.BusNumber);
                         isSearching = false;
 
                     }
@@ -157,7 +222,7 @@ public class InfoClasses {
                 public void onScanFailed(int errorCode) {
                     super.onScanFailed(errorCode);
 
-                    Log.e(" Bluetooth", "Unsuccessfully Connected to" + busInfo.BusNumber);
+                    Log.e(" Bluetooth", "Unsuccessfully Connected to" + DriverBus.BusNumber);
 
                     isSearching = false;
 
@@ -235,12 +300,54 @@ public class InfoClasses {
         static public int RIDER = 0;
         static public int Rider_Driver = RIDER;
 
-        public static void ChangeToDriverMode(){
+        static public boolean RIDER() {
 
-            if(Rider_Driver == RIDER) {
-                Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber);
-                Internet.fetchYourRoutes(InfoClasses.busInfo.BusNumber);
+            return RIDER == Rider_Driver;
+        }
+
+        static public boolean DRIVER() {
+
+            return DRIVER == Rider_Driver;
+        }
+
+        public static void ChangeToDriverMode() {
+
+            if (Rider_Driver == RIDER) {
+
                 Rider_Driver = DRIVER;
+                MainActivity.ModeJustChanged();
+                Internet.joinRoute_AsBus(DriverBus.BusNumber);
+                Internet.fetchYourRoutes(DriverBus.BusNumber);
+                SaveData.SaveAppMode(DRIVER);
+
+            }
+        }
+
+        public static void ChangeToRiderMode(Context context) {
+
+            if (Rider_Driver == DRIVER) {
+                MainActivity.ModeJustChanged();
+                Rider_Driver = RIDER;
+                if (SaveData.ReadMySavedRoutes() != null) {
+                    myInfo.BusRoutes.addAll(Objects.requireNonNull(SaveData.ReadMySavedRoutes()));
+                }
+
+                LatLng savedPos = ReadMySavedPos();
+
+                if (savedPos != null) {
+                    if (savedPos.latitude != 0) {
+
+                        InfoClasses.myInfo.savedLocation = savedPos;
+                        InfoClasses.myInfo.CurrentLocation = savedPos;
+                        InfoClasses.myInfo.Address = SaveData.ReadMySavedAddy();
+                    }
+                }
+
+                Internet.joinRoute_AsRider();
+                SaveData.SaveAppMode(RIDER);
+
+                DriverBus.disconnectFromBus(context);
+
             }
         }
     }

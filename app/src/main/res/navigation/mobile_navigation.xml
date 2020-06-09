@@ -19,7 +19,7 @@
 
         <fragment
             android:id="@+id/nav_myBuses"
-            android:name="com.gingergear.BusStopv3.ui.RiderBus.fragment"
+            android:name="com.gingergear.BusStopv3.ui.RiderBus.RiderFragment"
             android:label="@string/menu_riderbus"
             tools:layout="@layout/rider_bus_fragment" />
 

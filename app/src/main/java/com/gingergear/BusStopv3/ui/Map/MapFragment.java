@@ -1,28 +1,17 @@
 package com.gingergear.BusStopv3.ui.Map;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
@@ -31,21 +20,13 @@ import androidx.lifecycle.ViewModelProviders;
 import com.gingergear.BusStopv3.InfoClasses;
 import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
-import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -63,7 +44,7 @@ public class MapFragment extends Fragment {
     public static Marker me;
 
     private static BitmapDescriptor myIcon;
-    private static BitmapDescriptor busIcon;
+    public static BitmapDescriptor busIcon;
 
     private static Boolean unFocused = true;
 
@@ -159,10 +140,10 @@ public class MapFragment extends Fragment {
 
         me = MainActivity.mMap.addMarker(new MarkerOptions()
                 .icon(myIcon)
-                .position(InfoClasses.myInfo.CurrentLocation)
+                .position(new LatLng(0, 0))
                 .title("Your Current Location")
                 .snippet("Click me to set this as your address!")
-                .visible(true));
+                .visible(false));
 
         if(InfoClasses.myInfo.savedLocation != null){
             MapFragment.me.setTitle(InfoClasses.myInfo.Address);
@@ -170,12 +151,16 @@ public class MapFragment extends Fragment {
         }
 
         me.setTag("My Location");
-        me.showInfoWindow();
 
         theBus = MainActivity.mMap.addMarker(new MarkerOptions()
                 .icon(busIcon)
-                .position(new LatLng(84.2f, 84.2f))
-                .visible(true));
+                .position(new LatLng(0, 0))
+                .visible(false));
+
+        if(InfoClasses.Mode.DRIVER()){
+            MapFragment.me.setTitle("My Current Bus Location");
+            MapFragment.me.setSnippet("Currently performing route: " + InfoClasses.DriverBus.CurrentRoute);
+        }
 
         theBus.setTag("Bus' Location");
         try {
@@ -208,7 +193,7 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = ContextCompat.getDrawable(context, drawableId);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             drawable = (DrawableCompat.wrap(drawable)).mutate();

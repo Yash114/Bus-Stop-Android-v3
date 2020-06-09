@@ -6,7 +6,9 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.icu.text.IDNA;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
@@ -50,8 +53,7 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.gingergear.BusStopv3.SaveData.SaveMyHomePos;
-import static com.gingergear.BusStopv3.SaveData.readMySavedPos;
+import static com.gingergear.BusStopv3.SaveData.ReadMySavedPos;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -88,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         menuInflater = getMenuInflater();
 
-        Instantiate_Save_Methods("BusStopStorage");
+        Instantiate_Save_Methods();
         Instantiate_Map_Methods();
         checkLocationPermission();
 
@@ -133,8 +135,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (InfoClasses.Mode.Rider_Driver == InfoClasses.Mode.DRIVER) {
-            Internet.joinRoute_AsBus(InfoClasses.busInfo.BusNumber);
-            Internet.fetchYourRoutes(InfoClasses.busInfo.BusNumber);
+            Internet.joinRoute_AsBus(InfoClasses.DriverBus.BusNumber);
+            Internet.fetchYourRoutes(InfoClasses.DriverBus.BusNumber);
         }
     }
 
@@ -153,22 +155,67 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 || super.onSupportNavigateUp();
     }
 
-    private void Instantiate_Save_Methods(String fileName) {
+    private void Instantiate_Save_Methods() {
 
-        saveData = new SaveData(this, fileName);
+        saveData = new SaveData(getApplicationContext());
 
-        LatLng savedPos = readMySavedPos();
+        if (SaveData.ReadAppMode() != -1) {
 
-        if(savedPos != null) {
-            if(savedPos.latitude != 0) {
+            InfoClasses.Mode.Rider_Driver = SaveData.ReadAppMode();
+            Log.i("tag", InfoClasses.Mode.Rider_Driver == 0 ? "RIDER" : "DRIVER");
+        }
 
-                InfoClasses.myInfo.savedLocation = savedPos;
-                InfoClasses.myInfo.CurrentLocation = savedPos;
-                InfoClasses.myInfo.Address = SaveData.readMySavedAddy();
-                InfoClasses.myInfo.BusRoutes = saveData.ReadMySavedRoutes();
+        if (InfoClasses.Mode.DRIVER()) {
 
-                Log.e("tag", "git");
+        }
+
+        if (InfoClasses.Mode.RIDER()) {
+
+            LatLng savedPos = ReadMySavedPos();
+
+            if (savedPos != null) {
+                if (savedPos.latitude != 0) {
+
+                    InfoClasses.myInfo.savedLocation = savedPos;
+                    InfoClasses.myInfo.CurrentLocation = savedPos;
+                    InfoClasses.myInfo.Address = SaveData.ReadMySavedAddy();
+
+                    Log.i("tag", InfoClasses.myInfo.Address);
+
+                }
             }
+
+            //TODO implement the adding in buses with the routes and bus numbers
+            //TODO And test to see if this now composite save functions work
+
+            ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
+            if(routes != null) {
+                int x = 0;
+                InfoClasses.myInfo.BusRoutes.clear();
+                for(String s : routes) {
+                    x += 1;
+                    InfoClasses.myInfo.BusRoutes.add(s);
+                }
+                for(int y = 0; y < x; y++){
+                    InfoClasses.myInfo.BusRoutes.add("null");
+
+                }
+            }
+
+            ArrayList<String> buses = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
+            if(routes != null) {
+                int x = 0;
+                InfoClasses.myInfo.ZonedSchools.clear();
+                for(String s : routes) {
+                    x += 1;
+                    InfoClasses.myInfo.ZonedSchools.add(s);
+                }
+                for(int y = 0; y < x; y++){
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+
+                }
+            }
+
         }
     }
 
@@ -216,9 +263,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onLocationChanged(Location location) {
 
-        if (InfoClasses.myInfo.savedLocation == null) {
-            InfoClasses.myInfo.CurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        if (InfoClasses.Mode.RIDER()) {
+            if (InfoClasses.myInfo.savedLocation == null) {
+                InfoClasses.myInfo.CurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
+            }
         }
     }
 
@@ -325,71 +374,71 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-        //Allow the map to access the devices location
-//        if (SaveData.readMySavedPos() == null) {
-//
-//            mMap.setMyLocationEnabled(true);
-//            Log.e("tag", "there");
-//
-//        } else {
-//            if (readMySavedPos().latitude == 0) {
-//
-//                Log.e("tag", readMySavedPos().toString());
-//                mMap.setMyLocationEnabled(true);
-//            } else {
-//
-//                Log.e("tag", "here");
-//                mMap.setMyLocationEnabled(false);
-//                InfoClasses.myInfo.CurrentLocation = SaveData.readMySavedPos();
-//                InfoClasses.myInfo.Address = SaveData.readMySavedAddy();
-//            }
-//        }
+
 
         mMap.setMyLocationEnabled(false);
 
-        if (InfoClasses.myInfo.savedLocation == null) {
-            mMap.setMyLocationEnabled(true);
-        }
+        if (InfoClasses.Mode.RIDER()) {
 
-        MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-
-                if (marker.getTag() == MapFragment.me.getTag()) {
-
-                    if (InfoClasses.myInfo.savedLocation == null) {
-
-                        InfoClasses.myInfo.CurrentLocation = MapFragment.me.getPosition();
-                        InfoClasses.myInfo.savedLocation = MapFragment.me.getPosition();
-
-                        SaveData.SaveMyHomePos(MapFragment.me.getPosition());
-
-                        Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
-                        RGC.execute(InfoClasses.myInfo.CurrentLocation.latitude, InfoClasses.myInfo.CurrentLocation.longitude);
-
-                        Toast.makeText(getBaseContext(), "You just set your default address to this position", Toast.LENGTH_LONG).show();
-
-                        if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                            // TODO: Consider calling
-                            //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
-                        }
-                        mMap.setMyLocationEnabled(false);
-
-                    } else {
-                        Toast.makeText(getBaseContext(), "This is already your current location", Toast.LENGTH_LONG).show();
-                        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                        v.vibrate(100);
-                    }
-
-                }
-                return false;
+            if (InfoClasses.myInfo.savedLocation == null) {
+                mMap.setMyLocationEnabled(true);
             }
-        });
+
+
+            MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    if (marker.getTag() == MapFragment.me.getTag()) {
+
+                        if (InfoClasses.myInfo.savedLocation == null) {
+
+                            InfoClasses.myInfo.CurrentLocation = MapFragment.me.getPosition();
+                            InfoClasses.myInfo.savedLocation = MapFragment.me.getPosition();
+
+                            SaveData.SaveMyHomePos(MapFragment.me.getPosition());
+
+                            Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
+                            RGC.execute(InfoClasses.myInfo.CurrentLocation.latitude, InfoClasses.myInfo.CurrentLocation.longitude);
+
+                            Toast.makeText(getBaseContext(), "You just set your default address to this position", Toast.LENGTH_LONG).show();
+
+                            if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                // TODO: Consider calling
+                                //    ActivityCompat#requestPermissions
+                                // here to request the missing permissions, and then overriding
+                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                //                                          int[] grantResults)
+                                // to handle the case where the user grants the permission. See the documentation
+                                // for ActivityCompat#requestPermissions for more details.
+                            }
+                            mMap.setMyLocationEnabled(false);
+
+                            MapFragment.me.setTitle("Loading...");
+                            MapFragment.me.setSnippet("This is your saved address");
+
+                            new Timer().schedule(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    runOnUiThread(new Runnable() {
+                                        public void run() {
+                                            MapFragment.me.setTitle(InfoClasses.myInfo.Address);
+                                            MapFragment.me.showInfoWindow();
+                                        }
+                                    });
+                                }
+                            }, 700);
+
+                        } else {
+                            Toast.makeText(getBaseContext(), "This is already your current location", Toast.LENGTH_LONG).show();
+                            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                            v.vibrate(100);
+                        }
+
+                    }
+                    return false;
+                }
+            });
+        }
 
         StartRefresh();
 
@@ -426,20 +475,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 runOnUiThread(new Runnable() {
                     public void run() {
 
-                        if (InfoClasses.Mode.Rider_Driver == InfoClasses.Mode.DRIVER) {
-                            if (InfoClasses.busInfo.AssignedBusRoutes != null) {
+                        if (InfoClasses.Mode.DRIVER()) {
+                            if (InfoClasses.DriverBus.AssignedBusRoutes != null) {
 
                                 boolean pass = false;
 
-                                if (routes != InfoClasses.busInfo.AssignedBusRoutes) {
-                                    routes = InfoClasses.busInfo.AssignedBusRoutes;
+                                if (routes != InfoClasses.DriverBus.AssignedBusRoutes) {
+                                    routes = InfoClasses.DriverBus.AssignedBusRoutes;
                                     pass = true;
 
                                 } else {
 
                                     for (int x = 0; x < routes.size(); x++) {
 
-                                        if (!routes.get(x).equals(InfoClasses.busInfo.AssignedBusRoutes.get(x))) {
+                                        if (!routes.get(x).equals(InfoClasses.DriverBus.AssignedBusRoutes.get(x))) {
                                             pass = true;
 
                                         }
@@ -451,20 +500,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     //The Routes Have updated!!!
                                 }
                             }
-                            if (InfoClasses.busInfo.BusLocation != null && MapFragment.coordAuthenticatior(InfoClasses.busInfo.BusLocation)) {
+                            if (InfoClasses.DriverBus.BusLocation != null && MapFragment.coordAuthenticatior(InfoClasses.DriverBus.BusLocation)) {
                                 MapFragment.RecreateMapObjects();
 
                                 CameraPosition cameraPosition = new CameraPosition.Builder()
-                                        .target(InfoClasses.busInfo.BusLocation)
+                                        .target(InfoClasses.DriverBus.BusLocation)
                                         .zoom(17) // Gets the correct zoom factor from the distance vairabe
                                         .bearing(90)                // Sets the orientation of the camera to east
                                         .tilt(65)                   // Sets the tilt of the camera to 65 degrees
                                         .build();                   // Creates a CameraPosition from the builder
 
                                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                                MapFragment.theBus.setPosition(InfoClasses.busInfo.BusLocation);
+                                MapFragment.theBus.setPosition(InfoClasses.DriverBus.BusLocation);
+                                MapFragment.theBus.setVisible(true);
+                                MapFragment.theBus.showInfoWindow();
+
+
                             }
-                        } else {
+                        } else if (InfoClasses.Mode.RIDER()) {
 
                             if (MapFragment.coordAuthenticatior(InfoClasses.myInfo.CurrentLocation)) {
 
@@ -479,6 +532,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                                 MapFragment.me.setPosition(InfoClasses.myInfo.CurrentLocation);
+                                MapFragment.me.setVisible(true);
+                                MapFragment.me.showInfoWindow();
                             }
                         }
                     }
@@ -490,9 +545,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
+    static void ModeJustChanged() {
+
+        MapFragment.RecreateMapObjects();
+        MapFragment.unfocusMap();
+    }
+
     @Override
     protected void onDestroy() {
-        InfoClasses.busInfo.disconnectFromBus(this);
+        InfoClasses.DriverBus.disconnectFromBus(this);
         super.onDestroy();
     }
 }

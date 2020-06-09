@@ -8,13 +8,11 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Vibrator;
 import android.util.Log;
@@ -48,7 +46,7 @@ public class Background_Update extends IntentService {
                 .setSmallIcon(R.drawable.bus)
                 .setColor(16776960)
                 .setContentTitle("Bus Stop")
-                .setContentText("Your Bus: " + InfoClasses.busInfo.BusNumber + " is currently in route")
+                .setContentText("Your Bus: " + InfoClasses.DriverBus.BusNumber + " is currently in route")
                 .setLargeIcon(getBitmapFromVectorDrawable(this, R.mipmap.ic_launcher_round))
                 .setContentIntent(resultIntent)
                 .setPriority(NotificationCompat.DEFAULT_ALL);
@@ -153,18 +151,18 @@ public class Background_Update extends IntentService {
 
                                 LocationString = "";
 
-                                if (InfoClasses.busInfo.BusLocation != null && buf != null) {
-                                    if (Math.abs(InfoClasses.busInfo.BusLocation.latitude - buf.latitude) < 0.2 &&
-                                            Math.abs(InfoClasses.busInfo.BusLocation.longitude - buf.longitude) < 0.2) {
+                                if (InfoClasses.DriverBus.BusLocation != null && buf != null) {
+                                    if (Math.abs(InfoClasses.DriverBus.BusLocation.latitude - buf.latitude) < 0.2 &&
+                                            Math.abs(InfoClasses.DriverBus.BusLocation.longitude - buf.longitude) < 0.2) {
 
 
-                                        if (Math.abs(InfoClasses.busInfo.BusLocation.latitude - buf.latitude) > 0.000001 ||
-                                                Math.abs(InfoClasses.busInfo.BusLocation.longitude - buf.longitude) > 0.000001) {
-                                            if (buf != InfoClasses.busInfo.BusLocation) {
+                                        if (Math.abs(InfoClasses.DriverBus.BusLocation.latitude - buf.latitude) > 0.000001 ||
+                                                Math.abs(InfoClasses.DriverBus.BusLocation.longitude - buf.longitude) > 0.000001) {
+                                            if (buf != InfoClasses.DriverBus.BusLocation) {
 
-                                                    InfoClasses.busInfo.BusLocation = buf;
+                                                    InfoClasses.DriverBus.BusLocation = buf;
 
-                                                    Internet.sendLocations(buf, InfoClasses.busInfo.CurrentRoute, InfoClasses.busInfo.BusNumber);
+                                                    Internet.sendLocations(buf, InfoClasses.DriverBus.CurrentRoute, InfoClasses.DriverBus.BusNumber);
 
 
                                                     if (InfoClasses.Status.Status != InfoClasses.Status.NORMAL)
@@ -181,9 +179,9 @@ public class Background_Update extends IntentService {
 
                                         } else {
 
-                                            if (Math.abs(buf.latitude - Temp.latitude) < 0.0001 && Math.abs(buf.longitude - Temp.longitude) < 0.0001) {                                                 InfoClasses.busInfo.BusLocation = buf;
+                                            if (Math.abs(buf.latitude - Temp.latitude) < 0.0001 && Math.abs(buf.longitude - Temp.longitude) < 0.0001) {                                                 InfoClasses.DriverBus.BusLocation = buf;
 
-                                                    Internet.sendLocations(buf, InfoClasses.busInfo.CurrentRoute, InfoClasses.busInfo.BusNumber);
+                                                    Internet.sendLocations(buf, InfoClasses.DriverBus.CurrentRoute, InfoClasses.DriverBus.BusNumber);
 
                                                     if (InfoClasses.Status.Status != InfoClasses.Status.NORMAL)
                                                         InfoClasses.Status.Status = InfoClasses.Status.NORMAL;
@@ -227,7 +225,7 @@ public class Background_Update extends IntentService {
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(400);
 
-        InfoClasses.busInfo.disconnectFromBus(this);
+        InfoClasses.DriverBus.disconnectFromBus(this);
         Thread.currentThread().interrupt();
 
     }

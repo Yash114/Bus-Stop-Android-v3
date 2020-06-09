@@ -2,27 +2,11 @@ package com.gingergear.BusStopv3;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.p2p.WifiP2pManager;
 import android.os.AsyncTask;
-import android.os.Looper;
 import android.util.Log;
-import android.webkit.CookieManager;
 import android.widget.Toast;
 
-import androidx.fragment.app.FragmentManager;
-
-import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
-import com.google.android.gms.maps.model.Dash;
-import com.google.android.gms.maps.model.Dot;
-import com.google.android.gms.maps.model.Gap;
-import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.PatternItem;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,13 +22,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -462,7 +440,15 @@ public class Internet {
         protected void onPostExecute(JSONObject jsonObject) {
 
             super.onPostExecute(jsonObject);
-//            joinRoute_AsRider(TableReadings.get("run id0"));
+
+            int index = InfoClasses.myInfo.ZonedSchools.indexOf("null");
+            if(index != -1){
+
+                InfoClasses.myInfo.ZonedSchools.set(index, TableReadings.get("run id0"));
+
+            }
+
+            Log.i("Save", "Route memory full");
         }
     }
 
@@ -537,38 +523,18 @@ public class Internet {
 
     }
 
-    public static void joinRoute_AsRider(String busRouteID){
+    public static void joinRoute_AsRider(){
 
         if(SocketConnected) {
 
-            Log.e("websocket", busRouteID);
             String county = "Henry";
+            ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.myInfo.BusRoutes;
 
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"routeID\" : \"" +
-                    busRouteID + "\"}}";
-
-            ws.send(dataOut);
-        } else {
-
-            Log.e("websocket", "ERROR");
-            CreateWebSocketConnection();
-
-        }
-
-    }
-
-    //TODO fix this method and add compatible api
-    public static void joinRoutes_AsRider(String[] busRouteID){
-
-        if(SocketConnected) {
-
-            Log.e("websocket", busRouteID);
-            String county = "Henry";
-
-            String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"routeID\" : \"" +
-                    busRouteID + "\"}}";
+                    busRouteID.get(0) + ", \"routeID_1\" : \"" +
+                    busRouteID.get(1) + ", \"routeID_2\" : \"" +
+                    busRouteID.get(2) + "\"}}";
 
             ws.send(dataOut);
         } else {
@@ -642,8 +608,8 @@ public class Internet {
 
                     LatLng output = new LatLng(object.getDouble("lat"), object.getDouble("lng"));
                     Log.i("websocket", "retreved: " + output.toString());
-                    InfoClasses.busInfo.BusLocation = output;
-                    InfoClasses.busInfo.BusNumber = object.getString("busNumber");
+                    InfoClasses.DriverBus.BusLocation = output;
+                    InfoClasses.DriverBus.BusNumber = object.getString("busNumber");
                     InfoClasses.Status.Status = InfoClasses.Status.NORMAL;
 
                 }
@@ -669,7 +635,7 @@ public class Internet {
                         myRoutes.add(object.getString("additional_route"));
                     }
 
-                    InfoClasses.busInfo.AssignedBusRoutes = myRoutes;
+                    InfoClasses.DriverBus.AssignedBusRoutes = myRoutes;
                     Log.i("websocket", "jo");
 
 
