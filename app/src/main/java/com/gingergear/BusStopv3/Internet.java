@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Objects;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -65,7 +66,7 @@ public class Internet {
     static ArrayList<String> Bus_Number = new ArrayList<>();
 
     //Success Array {getLocation, sendLocation, reverse, getZonedSchools, getBusData}
-    public static Boolean[] Success = {false, false, false, false, false};
+    public static boolean GetBusDataSuccess = false;
     public static int getLocation_Success = 0;
     public static int sendLocation_Success = 1;
     public static int reverseGeoCode_Success = 2;
@@ -76,7 +77,8 @@ public class Internet {
     private static Boolean Connected = true;
     public static String My_Pref_Name = "byebye";
 
-    public Internet(){ }
+    public Internet() {
+    }
 
     static class ReverseGeoCode extends AsyncTask<Double, Void, JSONObject> {
 
@@ -185,8 +187,6 @@ public class Internet {
                     Log.i("intern", "Reverse Geocode JSON: Successful");
                     Log.i("intern", "Reverse Geocode JSON: I gathered your address is: " + mAddress_info[0]);
 
-                    Success[reverseGeoCode_Success] = true;
-
                 } catch (JSONException ex) {
                     Log.e("intern", "Reverse Geocode JSON: ERROR");
                     Log.e("intern", ex.getMessage());
@@ -205,10 +205,11 @@ public class Internet {
 
         Boolean Marker = false;
         Boolean dumbBool = false;
+        Boolean GetAllBuses = false;
 
         Context context;
 
-        public GetZonedSchools(Context c){
+        public GetZonedSchools(Context c) {
             context = c;
         }
 
@@ -220,10 +221,12 @@ public class Internet {
             if (Connected) {
                 String theURL = WebQuery_URL + "Address=" + URLEncoder.encode(strings[0]) + "&County=Henry";
 
-                Log.e("intern", ":"+theURL+";");
+                Log.e("intern", ":" + theURL + ";");
                 data = strings[0];
 
                 try {
+
+                    GetAllBuses = strings[1].equals( "true");
                     URL url = new URL(theURL);
 
                     HttpURLConnection urlConn;
@@ -246,7 +249,7 @@ public class Internet {
                     String data = sb.toString();
                     JSONObject jObject = new JSONObject(data);
 
-                    for(int q = 0; q < 3; q++) {
+                    for (int q = 0; q < 3; q++) {
 
                         String number = String.valueOf(q);
 
@@ -318,6 +321,8 @@ public class Internet {
 
                     School_Name.add(ZonedSchools[i][1]);
                     School_URL.add(ZonedSchools[i][0]);
+                    Internet.GetBusData GBD = new Internet.GetBusData(context);
+                    GBD.execute(ZonedSchools[i][0], ZonedSchools[i][1], Integer.toString(i));
 
                     Log.e("intern", ZonedSchools[i][1]);
                 }
@@ -328,7 +333,6 @@ public class Internet {
                     Log.i("intern", "GetZonedSchools: Successful");
 //                    RiderFrag.SummonSchoolButtons(mContext, Internet.this);
 
-                    Success[getZonedSchool_Success] = true;
                     InfoClasses.myInfo.ZonedSchools = School_Name;
                     InfoClasses.myInfo.SchoolURL = School_URL;
 
@@ -356,7 +360,9 @@ public class Internet {
 
     public static class GetBusData extends AsyncTask<String, Void, JSONObject> {
 
-        Hashtable<String,String> TableReadings = new Hashtable<>();
+        Hashtable<String, String> TableReadings = new Hashtable<>();
+        String SelectedSchool;
+        int orderOfExecution = 0;
         Context mcontext;
 
         public GetBusData(Context context) {
@@ -367,11 +373,14 @@ public class Internet {
 
         @SuppressLint("WrongThread")
         @Override
-        protected JSONObject doInBackground(String... targetURL) {
+        protected JSONObject doInBackground(String... data) {
 
             if (Connected) {
 
-                String urlStrings = WebQuery_URL + "SchoolURL=" +  URLEncoder.encode(targetURL[0]) + "&Cookie=" + WebQuery_SessionID + "&County=Henry";
+                orderOfExecution = Integer.parseInt(data[2]);
+
+                String urlStrings = WebQuery_URL + "SchoolURL=" + URLEncoder.encode(data[0]) + "&Cookie=" + WebQuery_SessionID + "&County=Henry";
+                SelectedSchool = data[1];
                 String line;
 
                 Log.e("intern", urlStrings);
@@ -396,12 +405,12 @@ public class Internet {
                         sb.append(line);
                     }
 
-                    String data = sb.toString();
-                    JSONObject jObject = new JSONObject(data);
+                    String received = sb.toString();
+                    JSONObject jObject = new JSONObject(received);
                     JSONObject jj = jObject.getJSONObject("ReturnedData");
                     String index;
 
-                    for(int q = 0; q < 4; q++) {
+                    for (int q = 0; q < 4; q++) {
 
                         index = String.valueOf(q);
                         TableReadings.put("stop time" + q, jj.getJSONObject("Stop Time").getString(index));
@@ -421,12 +430,12 @@ public class Internet {
 
                 if (TableReadings.get("run id0") != null) {
 
+                    String runID = TableReadings.get("run id0");
+
                     Log.i("intern", "GetBusData: Successful");
+                    Log.i("intern", runID);
+                    GetBusDataSuccess = true;
 
-                    Log.i("intern", TableReadings.get("run id0"));
-
-//                    InfoClasses.myInfo. = TableReadings[3][0];
-//                    SaveData.SaveBus(true, urlStrings, MainActivity.JoinedBus);
                 }
 
                 return null;
@@ -441,20 +450,16 @@ public class Internet {
 
             super.onPostExecute(jsonObject);
 
-            int index = InfoClasses.myInfo.ZonedSchools.indexOf("null");
-            if(index != -1){
 
-                InfoClasses.myInfo.ZonedSchools.set(index, TableReadings.get("run id0"));
+            InfoClasses.myInfo.BusRoutes.set(orderOfExecution, TableReadings.get("run id0"));
+            InfoClasses.myInfo.ZonedSchools.set(orderOfExecution, SelectedSchool);
 
-            }
-
-            Log.i("Save", "Route memory full");
         }
     }
 
-    public static void sendLocations(LatLng latLng, String busRouteID, String busNumber){
+    public static void sendLocations(LatLng latLng, String busRouteID, String busNumber) {
 
-        if(SocketConnected) {
+        if (SocketConnected) {
             String county = "Henry";
 
             String dataOut = "{\"action\" : \"updateData\" , \"data\" : {\"county\" : \"" +
@@ -476,9 +481,9 @@ public class Internet {
 
     }
 
-    public static void joinRoute_AsBus(String busNumber, String busRouteID){
+    public static void joinRoute_AsBus(String busNumber, String busRouteID) {
 
-        if(SocketConnected) {
+        if (SocketConnected) {
 
             String county = "Henry";
 
@@ -500,9 +505,9 @@ public class Internet {
 
     }
 
-    public static void joinRoute_AsBus(String busNumber){
+    public static void joinRoute_AsBus(String busNumber) {
 
-        if(SocketConnected) {
+        if (SocketConnected) {
 
             String county = "Henry";
 
@@ -523,9 +528,9 @@ public class Internet {
 
     }
 
-    public static void joinRoute_AsRider(){
+    public static void joinRoute_AsRider() {
 
-        if(SocketConnected) {
+        if (SocketConnected) {
 
             String county = "Henry";
             ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.myInfo.BusRoutes;
@@ -546,9 +551,9 @@ public class Internet {
 
     }
 
-    public static void fetchYourRoutes(String busNumber){
+    public static void fetchYourRoutes(String busNumber) {
 
-        if(SocketConnected) {
+        if (SocketConnected) {
 
             String county = "Henry";
 
@@ -603,7 +608,7 @@ public class Internet {
             try {
                 JSONObject jObject = new JSONObject(text);
 
-                if(text.contains("LatLng_data")) {
+                if (text.contains("LatLng_data")) {
                     JSONObject object = jObject.getJSONObject("LatLng_data");
 
                     LatLng output = new LatLng(object.getDouble("lat"), object.getDouble("lng"));
@@ -614,7 +619,7 @@ public class Internet {
 
                 }
 
-                if(text.contains("busData")) {
+                if (text.contains("busData")) {
                     JSONObject object = jObject.getJSONObject("busData");
 
                     ArrayList<String> myRoutes = new ArrayList<String>();
@@ -669,9 +674,9 @@ public class Internet {
         }
     }
 
-    public static void CreateWebSocketConnection(){
+    public static void CreateWebSocketConnection() {
 
-        if(!SocketConnected) {
+        if (!SocketConnected) {
             Request request = new Request.Builder().url(WebQuery_path).build();
             EchoWebSocketListener listener = new EchoWebSocketListener();
 
@@ -683,7 +688,7 @@ public class Internet {
         }
     }
 
-    public static void CloseWebSocket(){
+    public static void CloseWebSocket() {
 
         ws.cancel();
     }

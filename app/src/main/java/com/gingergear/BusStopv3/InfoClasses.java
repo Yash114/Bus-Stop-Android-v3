@@ -127,7 +127,7 @@ public class InfoClasses {
     public static class myInfo {
 
         public static List<String> BusRoutes = new ArrayList<>(Collections.nCopies(3, "null"));
-        public static List<String> ZonedSchools = new ArrayList<>();
+        public static List<String> ZonedSchools = new ArrayList<>(Collections.nCopies(3, "null"));
         public static List<String> SchoolURL = new ArrayList<>();
         public static List<Buses> myBuses = new ArrayList<>();
 
@@ -326,10 +326,31 @@ public class InfoClasses {
         public static void ChangeToRiderMode(Context context) {
 
             if (Rider_Driver == DRIVER) {
-                MainActivity.ModeJustChanged();
+
                 Rider_Driver = RIDER;
-                if (SaveData.ReadMySavedRoutes() != null) {
-                    myInfo.BusRoutes.addAll(Objects.requireNonNull(SaveData.ReadMySavedRoutes()));
+                SaveData.SaveAppMode(RIDER);
+
+                if(SaveData.ReadMySavedRoutes() != null) {
+                    ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
+                    ArrayList<String> buses = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
+
+                    InfoClasses.myInfo.BusRoutes.clear();
+                    InfoClasses.myInfo.ZonedSchools.clear();
+
+                    InfoClasses.myInfo.BusRoutes.addAll(routes);
+                    InfoClasses.myInfo.ZonedSchools.addAll(buses);
+
+                    for(String s : InfoClasses.myInfo.ZonedSchools){
+
+                        Log.e("tag", s);
+                    }
+
+                    for(String s : InfoClasses.myInfo.BusRoutes){
+
+                        Log.e("tag", s);
+                    }
+
+                    Internet.joinRoute_AsRider();
                 }
 
                 LatLng savedPos = ReadMySavedPos();
@@ -343,9 +364,8 @@ public class InfoClasses {
                     }
                 }
 
-                Internet.joinRoute_AsRider();
-                SaveData.SaveAppMode(RIDER);
 
+                MainActivity.ModeJustChanged();
                 DriverBus.disconnectFromBus(context);
 
             }

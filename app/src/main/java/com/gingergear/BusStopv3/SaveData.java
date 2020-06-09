@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -78,155 +79,19 @@ public class SaveData {
         return mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("Address", null);
     }
 
-    public static void SaveBusRoute(List<String> routes, List<String> schools){
+    public static void SaveBusRoutes(){
 
-        Set<String> stringSet = new Set<String>() {
-            @Override
-            public int size() {
-                return 0;
-            }
+        Set<String> stringSet = new HashSet<>();
 
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
+        stringSet.add(InfoClasses.myInfo.BusRoutes.get(0));
+        stringSet.add(InfoClasses.myInfo.BusRoutes.get(1));
+        stringSet.add(InfoClasses.myInfo.BusRoutes.get(2));
 
-            @Override
-            public boolean contains(@Nullable Object o) {
-                return false;
-            }
+        Set<String> stringSet2 = new HashSet<>();
 
-            @NonNull
-            @Override
-            public Iterator<String> iterator() {
-                return null;
-            }
-
-            @NonNull
-            @Override
-            public Object[] toArray() {
-                return new Object[0];
-            }
-
-            @NonNull
-            @Override
-            public <T> T[] toArray(@NonNull T[] a) {
-                return null;
-            }
-
-            @Override
-            public boolean add(String s) {
-                return false;
-            }
-
-            @Override
-            public boolean remove(@Nullable Object o) {
-                return false;
-            }
-
-            @Override
-            public boolean containsAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean addAll(@NonNull Collection<? extends String> c) {
-                return false;
-            }
-
-            @Override
-            public boolean retainAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean removeAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public void clear() {
-
-            }
-        };
-
-        stringSet.add(routes.get(0));
-        stringSet.add(routes.get(1));
-        stringSet.add(routes.get(2));
-
-        Set<String> stringSet2 = new Set<String>() {
-            @Override
-            public int size() {
-                return 0;
-            }
-
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public boolean contains(@Nullable Object o) {
-                return false;
-            }
-
-            @NonNull
-            @Override
-            public Iterator<String> iterator() {
-                return null;
-            }
-
-            @NonNull
-            @Override
-            public Object[] toArray() {
-                return new Object[0];
-            }
-
-            @NonNull
-            @Override
-            public <T> T[] toArray(@NonNull T[] a) {
-                return null;
-            }
-
-            @Override
-            public boolean add(String s) {
-                return false;
-            }
-
-            @Override
-            public boolean remove(@Nullable Object o) {
-                return false;
-            }
-
-            @Override
-            public boolean containsAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean addAll(@NonNull Collection<? extends String> c) {
-                return false;
-            }
-
-            @Override
-            public boolean retainAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean removeAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public void clear() {
-
-            }
-        };
-
-        stringSet2.add(schools.get(0));
-        stringSet2.add(schools.get(1));
-        stringSet2.add(schools.get(2));
+        stringSet2.add(InfoClasses.myInfo.ZonedSchools.get(0));
+        stringSet2.add(InfoClasses.myInfo.ZonedSchools.get(1));
+        stringSet2.add(InfoClasses.myInfo.ZonedSchools.get(2));
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
         editor.putStringSet("SavedUserRoutes", stringSet);
@@ -241,18 +106,11 @@ public class SaveData {
 
         //remember this is returns a SET!! Use an iterator to retrieve data
         if(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null) != null) {
-            String[] stuff = (String[]) mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null).toArray();
-            ArrayList<String> out = new ArrayList<>();
 
-            String[] stuff1 = (String[]) mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserSchools", null).toArray();
-            ArrayList<String> out1 = new ArrayList<>();
+            ArrayList<String> out = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null));
+            ArrayList<String> out1 = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserSchools", null));
 
-            Collections.addAll(out, stuff);
-            Collections.addAll(out1, stuff1);
-
-            ArrayList<String>[] bye = new ArrayList[]{out, out1};
-
-            return bye;
+            return new ArrayList[]{out, out1};
         }
 
         return null;

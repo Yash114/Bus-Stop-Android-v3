@@ -188,34 +188,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //TODO implement the adding in buses with the routes and bus numbers
             //TODO And test to see if this now composite save functions work
 
-            ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
-            if(routes != null) {
-                int x = 0;
-                InfoClasses.myInfo.BusRoutes.clear();
-                for(String s : routes) {
-                    x += 1;
-                    InfoClasses.myInfo.BusRoutes.add(s);
-                }
-                for(int y = 0; y < x; y++){
-                    InfoClasses.myInfo.BusRoutes.add("null");
+            if(SaveData.ReadMySavedRoutes() != null) {
+                ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
+                ArrayList<String> schools = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
 
-                }
-            }
+                if(!routes.contains("null") && !schools.contains("null")) {
+                    InfoClasses.myInfo.BusRoutes.clear();
+                    InfoClasses.myInfo.ZonedSchools.clear();
 
-            ArrayList<String> buses = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
-            if(routes != null) {
-                int x = 0;
-                InfoClasses.myInfo.ZonedSchools.clear();
-                for(String s : routes) {
-                    x += 1;
-                    InfoClasses.myInfo.ZonedSchools.add(s);
-                }
-                for(int y = 0; y < x; y++){
-                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.myInfo.BusRoutes.addAll(routes);
+                    InfoClasses.myInfo.ZonedSchools.addAll(schools);
 
+                    for (String s : InfoClasses.myInfo.ZonedSchools) {
+
+                        Log.e("tag", s);
+                    }
+
+                    for (String s : InfoClasses.myInfo.BusRoutes) {
+
+                        Log.e("tag", s);
+                    }
+
+                    Internet.joinRoute_AsRider();
                 }
             }
-
         }
     }
 

@@ -103,62 +103,13 @@ public class RiderFragment extends Fragment {
                 Internet.joinRoute_AsRider();
             }
 
-            for (Button buttons : SchoolButtons) {
-
-                buttons.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                        int index = 0;
-                        for (Button button : SchoolButtons) {
-
-                            if (button == v) {
-
-                                final Button clickedButton = button;
-
-                                button.setText("Adding Your Bus...");
-                                Internet.GetBusData GBD = new Internet.GetBusData(getContext());
-                                Log.e("tag", InfoClasses.myInfo.SchoolURL.get(index));
-                                GBD.execute(InfoClasses.myInfo.SchoolURL.get(index));
-                                final String clickedSchool = InfoClasses.myInfo.ZonedSchools.get(index);
-
-                                new Timer().schedule(new TimerTask() {
-                                    @Override
-                                    public void run() {
-                                        requireActivity().runOnUiThread(new Runnable() {
-                                            public void run() {
-
-                                                clickedButton.setText(clickedSchool);
-
-                                                if (InfoClasses.myInfo.BusRoutes.size() != 0) {
-
-                                                    Toast.makeText(getContext(), "Successfully added this bus route", Toast.LENGTH_SHORT).show();
-//                                                    SaveData.SaveBusRoute(InfoClasses.myInfo.BusRoutes);
-
-                                                    Internet.joinRoute_AsRider();
-                                                } else {
-
-                                                    Toast.makeText(getContext(), "Server Error", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
-                                    }
-                                }, 5000);
-                            }
-
-                            index += 1;
-                        }
-                    }
-                });
-            }
-
             newBusButton = root.findViewById(R.id.newBusButton);
             newBusButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
                     Internet.GetZonedSchools RGC = new Internet.GetZonedSchools(getContext());
-                    RGC.execute(InfoClasses.myInfo.Address);
+                    RGC.execute(InfoClasses.myInfo.Address, "true");
 
                     newBusButton.setText("Loading...");
 
@@ -170,21 +121,31 @@ public class RiderFragment extends Fragment {
 
                                     newBusButton.setText("Add a new bus");
 
-                                    if (InfoClasses.myInfo.ZonedSchools != null) {
+                                    if (!InfoClasses.myInfo.ZonedSchools.contains("null")) {
 
-                                        int index = 0;
-                                        for (Button button : SchoolButtons) {
+                                        Toast.makeText(getContext(), "You buses were added successfully", Toast.LENGTH_SHORT).show();
+                                        SaveData.SaveBusRoutes();
+                                    } else {
 
-                                            button.setVisibility(View.VISIBLE);
-                                            button.setText(InfoClasses.myInfo.ZonedSchools.get(index));
+                                        InfoClasses.myInfo.ZonedSchools.clear();
+                                        InfoClasses.myInfo.ZonedSchools.add("null");
+                                        InfoClasses.myInfo.ZonedSchools.add("null");
+                                        InfoClasses.myInfo.ZonedSchools.add("null");
 
-                                            index += 1;
-                                        }
+                                        InfoClasses.myInfo.BusRoutes.clear();
+                                        InfoClasses.myInfo.BusRoutes.add("null");
+                                        InfoClasses.myInfo.BusRoutes.add("null");
+                                        InfoClasses.myInfo.BusRoutes.add("null");
+
+                                        Toast.makeText(getContext(), "You buses were NOT added successfully", Toast.LENGTH_LONG).show();
+                                        Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+                                        v.vibrate(300);
+
                                     }
                                 }
                             });
                         }
-                    }, 5000);
+                    }, 10000);
                 }
             });
         } else {
