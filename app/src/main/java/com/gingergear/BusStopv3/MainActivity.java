@@ -8,14 +8,20 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.drawable.AnimatedImageDrawable;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,6 +37,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
 import com.gingergear.BusStopv3.ui.Map.MapFragment;
 import com.google.android.gms.common.ConnectionResult;
@@ -49,6 +56,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -81,12 +89,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     public static SupportMapFragment mapSupportFragment;
+    private boolean markerSelected = false;
+    public static boolean UpdatesAvailable = true;
 
+    AnimationDrawable rocketAnimation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Internet.CreateWebSocketConnection();
 
         menuInflater = getMenuInflater();
 
@@ -97,8 +109,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fragmentManager = getSupportFragmentManager();
         Internet.CreateWebSocketConnection();
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
+
+        final ImageButton navButton = findViewById(R.id.navButton);
+        final AnimatedVectorDrawableCompat Map = AnimatedVectorDrawableCompat.create(getApplicationContext(), R.drawable.maptolist);
+        final AnimatedVectorDrawableCompat List = AnimatedVectorDrawableCompat.create(getApplicationContext(), R.drawable.avd_anim);
+
+        navButton.setBackground(Map);
+
+        navButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                drawer.openDrawer(Gravity.LEFT);
+            }
+        });
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -107,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setDrawerLayout(drawer)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
+//        NavigationUI.set(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
         MapFragment.mainActivity = this;
@@ -167,6 +193,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (InfoClasses.Mode.DRIVER()) {
 
+            ArrayList<String> data = SaveData.ReadBusCompletedRoutes();
+
+            if(data != null) {
+                InfoClasses.DriverBus.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
+            }
         }
 
         if (InfoClasses.Mode.RIDER()) {
@@ -188,26 +219,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //TODO implement the adding in buses with the routes and bus numbers
             //TODO And test to see if this now composite save functions work
 
-            if(SaveData.ReadMySavedRoutes() != null) {
+            if (SaveData.ReadMySavedRoutes() != null && SaveData.ReadMySavedRoutes()[0] != null && SaveData.ReadMySavedRoutes()[1] != null) {
                 ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
                 ArrayList<String> schools = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
 
-                if(!routes.contains("null") && !schools.contains("null")) {
+                if (!routes.contains("null") && !schools.contains("null")) {
                     InfoClasses.myInfo.BusRoutes.clear();
                     InfoClasses.myInfo.ZonedSchools.clear();
 
                     InfoClasses.myInfo.BusRoutes.addAll(routes);
                     InfoClasses.myInfo.ZonedSchools.addAll(schools);
-
-                    for (String s : InfoClasses.myInfo.ZonedSchools) {
-
-                        Log.e("tag", s);
-                    }
-
-                    for (String s : InfoClasses.myInfo.BusRoutes) {
-
-                        Log.e("tag", s);
-                    }
 
                     Internet.joinRoute_AsRider();
                 }
@@ -321,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         //Sets various UI options of the Google map
-        mMap.getUiSettings().setZoomControlsEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMyLocationButtonEnabled(false);
@@ -371,7 +392,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
-
         mMap.setMyLocationEnabled(false);
 
         if (InfoClasses.Mode.RIDER()) {
@@ -384,14 +404,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    if (marker.getTag() == MapFragment.me.getTag()) {
+                    if (marker.getTag() == InfoClasses.myInfo.marker.getTag()) {
 
                         if (InfoClasses.myInfo.savedLocation == null) {
 
-                            InfoClasses.myInfo.CurrentLocation = MapFragment.me.getPosition();
-                            InfoClasses.myInfo.savedLocation = MapFragment.me.getPosition();
+                            InfoClasses.myInfo.CurrentLocation = InfoClasses.myInfo.marker.getPosition();
+                            InfoClasses.myInfo.savedLocation = InfoClasses.myInfo.marker.getPosition();
 
-                            SaveData.SaveMyHomePos(MapFragment.me.getPosition());
+                            SaveData.SaveMyHomePos(InfoClasses.myInfo.marker.getPosition());
 
                             Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
                             RGC.execute(InfoClasses.myInfo.CurrentLocation.latitude, InfoClasses.myInfo.CurrentLocation.longitude);
@@ -409,16 +429,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                             mMap.setMyLocationEnabled(false);
 
-                            MapFragment.me.setTitle("Loading...");
-                            MapFragment.me.setSnippet("This is your saved address");
+                            InfoClasses.myInfo.marker.setTitle("Loading...");
+                            InfoClasses.myInfo.marker.setSnippet("This is your saved address");
 
                             new Timer().schedule(new TimerTask() {
                                 @Override
                                 public void run() {
                                     runOnUiThread(new Runnable() {
                                         public void run() {
-                                            MapFragment.me.setTitle(InfoClasses.myInfo.Address);
-                                            MapFragment.me.showInfoWindow();
+                                            InfoClasses.myInfo.marker.setTitle(InfoClasses.myInfo.Address);
+                                            InfoClasses.myInfo.marker.showInfoWindow();
                                         }
                                     });
                                 }
@@ -429,11 +449,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                             v.vibrate(100);
                         }
-
+                        markerSelected = false;
+                    } else {
+                        markerSelected = true;
                     }
                     return false;
                 }
             });
+
+            new InfoClasses.Markers(this);
+            MapFragment.RecreateMapObjects();
         }
 
         StartRefresh();
@@ -507,29 +532,68 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         .build();                   // Creates a CameraPosition from the builder
 
                                 mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                                MapFragment.theBus.setPosition(InfoClasses.DriverBus.BusLocation);
-                                MapFragment.theBus.setVisible(true);
-                                MapFragment.theBus.showInfoWindow();
+                                InfoClasses.DriverBus.marker.setPosition(InfoClasses.DriverBus.BusLocation);
+                                InfoClasses.DriverBus.marker.setVisible(true);
+                                InfoClasses.DriverBus.marker.showInfoWindow();
 
 
                             }
                         } else if (InfoClasses.Mode.RIDER()) {
 
-                            if (MapFragment.coordAuthenticatior(InfoClasses.myInfo.CurrentLocation)) {
+                            if (InfoClasses.myInfo.savedLocation == null) {
+                                if (MapFragment.coordAuthenticatior(InfoClasses.myInfo.CurrentLocation)) {
+                                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                                            .target(InfoClasses.myInfo.CurrentLocation)
+                                            .zoom(17) // Gets the correct zoom factor from the distance vairabe
+                                            .bearing(90)                // Sets the orientation of the camera to east
+                                            .tilt(65)                   // Sets the tilt of the camera to 65 degrees
+                                            .build();                   // Creates a CameraPosition from the builder
 
-                                MapFragment.RecreateMapObjects();
+                                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                                    InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.CurrentLocation);
+                                    InfoClasses.myInfo.marker.setVisible(true);
+                                    InfoClasses.myInfo.marker.showInfoWindow();
+                                }
 
-                                CameraPosition cameraPosition = new CameraPosition.Builder()
-                                        .target(InfoClasses.myInfo.CurrentLocation)
-                                        .zoom(17) // Gets the correct zoom factor from the distance vairabe
-                                        .bearing(90)                // Sets the orientation of the camera to east
-                                        .tilt(65)                   // Sets the tilt of the camera to 65 degrees
-                                        .build();                   // Creates a CameraPosition from the builder
+                            } else {
 
-                                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                                MapFragment.me.setPosition(InfoClasses.myInfo.CurrentLocation);
-                                MapFragment.me.setVisible(true);
-                                MapFragment.me.showInfoWindow();
+                                if (UpdatesAvailable) {
+                                    if(InfoClasses.Status.Map()) {
+
+                                        UpdatesAvailable = false;
+                                    }
+                                    InfoClasses.myInfo.updateBusPositions();
+
+                                    ArrayList<LatLng> positions = new ArrayList<>();
+                                    for (InfoClasses.Buses bus : InfoClasses.myInfo.myBuses.values()) {
+
+                                        positions.add(bus.BusLocation);
+                                    }
+
+                                    double longestLength = 200;
+
+                                    for (LatLng p : positions) {
+
+                                        double i = distanceBetweenLocations(InfoClasses.myInfo.CurrentLocation, p);
+                                        Log.i("tag", Double.toString(i));
+
+                                        if (i > longestLength) {
+                                            longestLength = i;
+                                        }
+                                    }
+
+                                    if (!markerSelected) {
+                                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                                .target(InfoClasses.myInfo.savedLocation)
+                                                .zoom((float) -(Math.log(longestLength * 19 / 591657550.5) / Math.log(2))) // Gets the correct zoom factor from the distance vairabe
+                                                .bearing(90)                // Sets the orientation of the camera to east
+                                                .build();                   // Creates a CameraPosition from the builder
+                                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                                    }
+                                    InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.savedLocation);
+                                    InfoClasses.myInfo.marker.setVisible(true);
+                                }
                             }
                         }
                     }
@@ -554,6 +618,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         drawable.draw(canvas);
 
         return bitmap;
+    }
+
+    private double distanceBetweenLocations(LatLng x, LatLng y){
+
+        double q = x.latitude - y.latitude;
+        double p = x.longitude - y.longitude;
+
+        return Math.sqrt(Math.pow(q, 2) + Math.pow(p, 2)) * 250000;
     }
 
     static void ModeJustChanged() {

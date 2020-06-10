@@ -66,7 +66,6 @@ public class Internet {
     static ArrayList<String> Bus_Number = new ArrayList<>();
 
     //Success Array {getLocation, sendLocation, reverse, getZonedSchools, getBusData}
-    public static boolean GetBusDataSuccess = false;
     public static int getLocation_Success = 0;
     public static int sendLocation_Success = 1;
     public static int reverseGeoCode_Success = 2;
@@ -362,6 +361,8 @@ public class Internet {
 
         Hashtable<String, String> TableReadings = new Hashtable<>();
         String SelectedSchool;
+        boolean GetBusDataSuccess = false;
+
         int orderOfExecution = 0;
         Context mcontext;
 
@@ -451,8 +452,10 @@ public class Internet {
             super.onPostExecute(jsonObject);
 
 
-            InfoClasses.myInfo.BusRoutes.set(orderOfExecution, TableReadings.get("run id0"));
-            InfoClasses.myInfo.ZonedSchools.set(orderOfExecution, SelectedSchool);
+            if(GetBusDataSuccess) {
+                InfoClasses.myInfo.BusRoutes.set(orderOfExecution, TableReadings.get("run id0"));
+                InfoClasses.myInfo.ZonedSchools.set(orderOfExecution, SelectedSchool);
+            }
 
         }
     }
@@ -536,11 +539,36 @@ public class Internet {
             ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.myInfo.BusRoutes;
 
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"routeID\" : \"" +
-                    busRouteID.get(0) + ", \"routeID_1\" : \"" +
-                    busRouteID.get(1) + ", \"routeID_2\" : \"" +
+                    county + "\" , \"route1\" : \"" +
+                    busRouteID.get(0) + "\", \"route2\" : \"" +
+                    busRouteID.get(1) + "\", \"route3\" : \"" +
                     busRouteID.get(2) + "\"}}";
 
+            Log.e("websocket", dataOut);
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    public static void joinRoute_AsRider(String routeID) {
+
+        if (SocketConnected) {
+
+            String county = "Henry";
+            ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.myInfo.BusRoutes;
+
+            String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"route1\" : \"" +
+                    routeID + "\", \"route2\" : \"" +
+                    busRouteID.get(1) + "\", \"route3\" : \"" +
+                    busRouteID.get(2) + "\"}}";
+
+            Log.e("websocket", dataOut);
             ws.send(dataOut);
         } else {
 
@@ -573,7 +601,7 @@ public class Internet {
 
     public static void disconnectYourBus(String busNumber, LatLng location) {
 
-        if (SocketConnected) {
+        if (SocketConnected && location != null) {
 
             String county = "Henry";
 
@@ -611,12 +639,36 @@ public class Internet {
                 if (text.contains("LatLng_data")) {
                     JSONObject object = jObject.getJSONObject("LatLng_data");
 
-                    LatLng output = new LatLng(object.getDouble("lat"), object.getDouble("lng"));
-                    Log.i("websocket", "retreved: " + output.toString());
-                    InfoClasses.DriverBus.BusLocation = output;
-                    InfoClasses.DriverBus.BusNumber = object.getString("busNumber");
                     InfoClasses.Status.Status = InfoClasses.Status.NORMAL;
 
+                    final LatLng BusLocation = new LatLng(object.getDouble("lat"), object.getDouble("lng"));
+                    final String RouteID = object.getString("routeID");
+                    final String BusNumber = object.getString("busNumber");
+
+
+
+                    if(InfoClasses.myInfo.myBuses.containsKey(RouteID)){
+
+                        InfoClasses.Buses thisBus = InfoClasses.myInfo.myBuses.get(RouteID);
+                        thisBus.BusLocation = BusLocation;
+
+                        if(!thisBus.BusNumber.equals(BusNumber)){
+
+                            //TODO show a notification or sum
+                            thisBus.BusNumber = BusNumber;
+                        }
+
+                        Log.e("tag", "Updated bus info");
+
+                    } else {
+
+                        InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation, InfoClasses.myInfo.getSchoolFromRoute(RouteID));
+                        InfoClasses.myInfo.myBuses.put(RouteID, newBus);
+
+                        Log.e("tag", "Created a new bus instance");
+                    }
+
+                    MainActivity.UpdatesAvailable = true;
                 }
 
                 if (text.contains("busData")) {
@@ -668,8 +720,7 @@ public class Internet {
 
         @Override
         public void onFailure(WebSocket webSocket, Throwable t, Response response) {
-            Log.i("websocket", "Error : " + t.getMessage());
-            SocketConnected = false;
+            Log.e("websocket", "Error : " + t.getMessage());
 
         }
     }

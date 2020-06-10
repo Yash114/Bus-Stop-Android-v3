@@ -36,6 +36,7 @@ public class fragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Setting;
+        InfoClasses.Mode.ChangeToRiderMode(getContext());
 
         homeViewModel = ViewModelProviders.of(this).get(model.class);
         View root = inflater.inflate(R.layout.settings_fragment, container, false);
@@ -59,6 +60,19 @@ public class fragment extends Fragment {
                         // for ActivityCompat#requestPermissions for more details.
                         return;
                     }
+
+                    InfoClasses.myInfo.ZonedSchools.clear();
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+
+                    InfoClasses.myInfo.BusRoutes.clear();
+                    InfoClasses.myInfo.BusRoutes.add("null");
+                    InfoClasses.myInfo.BusRoutes.add("null");
+                    InfoClasses.myInfo.BusRoutes.add("null");
+                    SaveData.SaveBusRoutes();
+
+                    InfoClasses.myInfo.myBuses.clear();
 
                     MainActivity.mMap.setMyLocationEnabled(true);
                     SaveData.SaveMyHomePos(new LatLng(0, 0));

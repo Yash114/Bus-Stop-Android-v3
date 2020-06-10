@@ -8,14 +8,23 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Interpolator;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.animation.BounceInterpolator;
+import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -42,6 +51,7 @@ public class InfoClasses {
         public static String BusDriver;
         public static ArrayList<String> AssignedBusRoutes;
         public static ArrayList<String> CompletedBusRoutes = new ArrayList<>();
+        public static Marker marker;
 
         public static String CurrentRoute;
 
@@ -52,6 +62,7 @@ public class InfoClasses {
                 Internet.disconnectYourBus(BusNumber, BusLocation);
                 context.stopService(BusControlFragment.intent);
                 Bluetooth.isConnected = false;
+                CurrentRoute = null;
             }
 
         }
@@ -71,56 +82,100 @@ public class InfoClasses {
 
     }
 
-    public static class Buses {
+    public static class Markers {
 
-        public static LatLng BusLocation;
-        public static String School;
-        public static String BusNumber;
-        public static String Route;
-        public static Marker marker;
+        public static BitmapDescriptor MyBitmap;
+        public static BitmapDescriptor BusBitmap;
 
-        public Buses(String busNumber, LatLng busLocation, String school, Context context){
+        public Markers(Context context){
+
+            Bitmap MyBitmapsi = getBitmapFromVectorDrawable(context, R.drawable.kid);
+            Bitmap BusBitmapi = getBitmapFromVectorDrawable(context, R.drawable.bus);
+
+            MyBitmap = BitmapDescriptorFactory.fromBitmap(MyBitmapsi);
+            BusBitmap = BitmapDescriptorFactory.fromBitmap(BusBitmapi);
+        }
+
+        public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+            Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                drawable = (DrawableCompat.wrap(drawable)).mutate();
+            }
+
+            Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                    drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+            drawable.draw(canvas);
+
+            return bitmap;
+        }
+    }
+
+    public class Buses {
+
+        public LatLng BusLocation;
+        public String School;
+        public String BusNumber;
+        public String Route;
+        public Marker marker;
+
+        public Buses(String busNumber, LatLng busLocation, String school){
 
             BusNumber = busNumber;
             BusLocation = busLocation;
             School = school;
 
+        }
+
+        public void createMarker(){
+
             marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromBitmap(MainActivity.getBitmapFromVectorDrawable(context, R.drawable.bus)))
+                    .icon(Markers.BusBitmap)
                     .position(BusLocation)
                     .title(BusNumber)
                     .snippet("Runnning for " + School)
                     .visible(true));
         }
 
-        public static void moveBusTo(final LatLng destination) {
+        public void updatePosition() {
 
-            final Handler handler = new Handler();
-            final long start = SystemClock.uptimeMillis();
-            final long duration = 1000;
+            if (marker == null) {
 
-            final BounceInterpolator interpolator = new BounceInterpolator();
-            marker.setVisible(true);
+                createMarker();
+            } else {
 
-            double Lat = destination.latitude - marker.getPosition().latitude;
-            double Lng = destination.longitude - marker.getPosition().longitude;
-            final LatLng begin = marker.getPosition();
-            final LatLng distanceCoor = new LatLng(Lat, Lng);
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    long elapsed = SystemClock.uptimeMillis() - start;
-                    float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+                if(!marker.getTitle().equals(BusNumber)){
 
-                    marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration),  begin.longitude + elapsed * (distanceCoor.longitude / duration)));
-                    Log.e("tag", Float.toString(t));
-
-                    if (t > 0.0) {
-                        // Post again 16ms later.
-                        handler.postDelayed(this, 16);
-                    }
+                    marker.setTitle(BusNumber);
                 }
-            });
+                Log.e("tag", "setting pus pos");
+                final Handler handler = new Handler();
+                final long start = SystemClock.uptimeMillis();
+                final long duration = 1000;
+
+                final BounceInterpolator interpolator = new BounceInterpolator();
+                marker.setVisible(true);
+
+                double Lat = BusLocation.latitude - marker.getPosition().latitude;
+                double Lng = BusLocation.longitude - marker.getPosition().longitude;
+                final LatLng begin = marker.getPosition();
+                final LatLng distanceCoor = new LatLng(Lat, Lng);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        long elapsed = SystemClock.uptimeMillis() - start;
+                        float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+
+                        marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
+
+                        if (t > 0.0) {
+                            // Post again 16ms later.
+                            handler.postDelayed(this, 16);
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -128,14 +183,35 @@ public class InfoClasses {
 
         public static List<String> BusRoutes = new ArrayList<>(Collections.nCopies(3, "null"));
         public static List<String> ZonedSchools = new ArrayList<>(Collections.nCopies(3, "null"));
+
         public static List<String> SchoolURL = new ArrayList<>();
-        public static List<Buses> myBuses = new ArrayList<>();
+        public static Hashtable<String,Buses> myBuses = new Hashtable<>();
 
         public static String Address;
         public static LatLng CurrentLocation;
         public static LatLng savedLocation = null;
 
+        public static Marker marker;
 
+        public static String getSchoolFromRoute(String Route){
+
+            int index = BusRoutes.indexOf(Route);
+
+            if(index != -1){
+
+                return ZonedSchools.get(index);
+            }
+
+            return null;
+        }
+
+        public static void updateBusPositions(){
+
+            for(Buses bus : myBuses.values()){
+
+                bus.updatePosition();
+            }
+        }
     }
 
     public static class Bluetooth {
@@ -292,10 +368,26 @@ public class InfoClasses {
         static public int Admin = 4;
         static public int ActiveFragment = 0;
 
+        public static boolean Map(){
+            return ActiveFragment == Map;
+        }
+        public static boolean Setting(){
+            return ActiveFragment == Setting;
+        }
+        public static boolean Rider(){
+            return ActiveFragment == Rider;
+        }
+        public static boolean Driver(){
+            return ActiveFragment == Driver;
+        }
+        public static boolean Admin(){
+            return ActiveFragment == Admin;
+        }
     }
 
     public static class Mode {
 
+        static public int ADMIN = 1;
         static public int DRIVER = 1;
         static public int RIDER = 0;
         static public int Rider_Driver = RIDER;
@@ -310,7 +402,7 @@ public class InfoClasses {
             return DRIVER == Rider_Driver;
         }
 
-        public static void ChangeToDriverMode() {
+        public static void ChangeToDriverMode(Context context) {
 
             if (Rider_Driver == RIDER) {
 
@@ -320,6 +412,8 @@ public class InfoClasses {
                 Internet.fetchYourRoutes(DriverBus.BusNumber);
                 SaveData.SaveAppMode(DRIVER);
 
+                Toast.makeText(context, "You just entered the secret Bus Driver Mode!", Toast.LENGTH_SHORT).show();
+
             }
         }
 
@@ -327,10 +421,11 @@ public class InfoClasses {
 
             if (Rider_Driver == DRIVER) {
 
+                MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
                 SaveData.SaveAppMode(RIDER);
 
-                if(SaveData.ReadMySavedRoutes() != null) {
+                if (SaveData.ReadMySavedRoutes() != null) {
                     ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
                     ArrayList<String> buses = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
 
@@ -340,12 +435,12 @@ public class InfoClasses {
                     InfoClasses.myInfo.BusRoutes.addAll(routes);
                     InfoClasses.myInfo.ZonedSchools.addAll(buses);
 
-                    for(String s : InfoClasses.myInfo.ZonedSchools){
+                    for (String s : InfoClasses.myInfo.ZonedSchools) {
 
                         Log.e("tag", s);
                     }
 
-                    for(String s : InfoClasses.myInfo.BusRoutes){
+                    for (String s : InfoClasses.myInfo.BusRoutes) {
 
                         Log.e("tag", s);
                     }
@@ -367,8 +462,15 @@ public class InfoClasses {
 
                 MainActivity.ModeJustChanged();
                 DriverBus.disconnectFromBus(context);
+                Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
 
             }
+        }
+
+        public static void ChangeToAdminMode(Context context) {
+
+            Rider_Driver = ADMIN;
+            Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
         }
     }
 }

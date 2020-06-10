@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+
 
     <fragment
         android:id="@+id/nav_host_fragment"
@@ -17,5 +19,65 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/mobile_navigation" />
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="16dp"
+        android:background="@drawable/buttonshape">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <pl.droidsonroids.gif.GifImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="8dp"
+
+            android:longClickable="false"
+            android:layout_centerHorizontal="true"
+
+            android:scaleType="fitXY"
+            android:src="@drawable/earth"
+            android:id="@+id/GIF" />
+
+        <TextView
+            android:id="@+id/BUS"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="BUS"
+            android:layout_alignRight="@id/GIF"
+            android:paddingRight="44dp"
+            android:textSize="24dp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_centerVertical="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="STOP"
+            android:layout_alignLeft="@id/GIF"
+            android:paddingLeft="40dp"
+            android:textSize="24dp"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_centerVertical="true"/>
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginLeft="16dp"
+            android:layout_centerVertical="true"
+            android:id="@+id/navButton"
+            android:background="@drawable/ic_baseline_dehaze_24"/>
+
+        <ImageButton
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginRight="16dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/ic_baseline_map_24"
+            android:id="@+id/mapButton" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

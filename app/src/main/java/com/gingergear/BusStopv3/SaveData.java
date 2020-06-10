@@ -2,31 +2,12 @@ package com.gingergear.BusStopv3;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 @SuppressWarnings("ConstantConditions")
@@ -79,7 +60,7 @@ public class SaveData {
         return mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("Address", null);
     }
 
-    public static void SaveBusRoutes(){
+    public static void SaveBusRoutes() {
 
         Set<String> stringSet = new HashSet<>();
 
@@ -102,21 +83,46 @@ public class SaveData {
 
     }
 
-    public static ArrayList<String>[] ReadMySavedRoutes(){
+    public static void SaveCompletedBusRoutes() {
 
-        //remember this is returns a SET!! Use an iterator to retrieve data
-        if(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null) != null) {
+        Set<String> stringSet = new HashSet<>();
 
-            ArrayList<String> out = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null));
-            ArrayList<String> out1 = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserSchools", null));
+        stringSet.addAll(InfoClasses.DriverBus.CompletedBusRoutes);
 
-            return new ArrayList[]{out, out1};
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
+        editor.putStringSet("CompletedBusRoutes", stringSet);
+
+        editor.apply();
+        Log.i("Save", "Successfully saved: Your default routes and schools");
+
+    }
+
+    public static ArrayList<String> ReadBusCompletedRoutes() {
+
+        if (mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("CompletedBusRoutes", null) != null) {
+            ArrayList<String> out = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("CompletedBusRoutes", null));
+            return out;
         }
 
         return null;
     }
 
-    public static void SaveAppMode(int mode){
+    public static ArrayList[] ReadMySavedRoutes() {
+
+        if (mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null) != null) {
+            if (mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserSchools", null) != null) {
+
+                ArrayList<String> out = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserRoutes", null));
+                ArrayList<String> out1 = new ArrayList<>(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getStringSet("SavedUserSchools", null));
+
+                return new ArrayList[]{out, out1};
+            }
+        }
+
+        return null;
+    }
+
+    public static void SaveAppMode(int mode) {
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
         editor.putInt("mode", mode);
@@ -128,7 +134,7 @@ public class SaveData {
 
     public static int ReadAppMode() {
 
-        if(mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).contains("mode") ){
+        if (mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).contains("mode")) {
             return mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getInt("mode", -1);
         }
 

@@ -1,0 +1,31 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:name="vector"
+            android:width="24dp"
+            android:height="24dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <path
+                android:name="path"
+                android:pathData="M 2 15.5 L 2 17.5 L 22 17.5 L 22 15.5 L 2 15.5 Z M 2 10.5 L 2 12.5 L 22 12.5 L 22 10.5 L 2 10.5 Z M 2 5.5 L 2 7.5 L 22 7.5 L 22 5.5 L 2 5.5 Z"
+                android:fillColor="#ffffff"/>
+            <path
+                android:name="path_1"
+                android:pathData="M 20.5 3 L 20.34 3.03 L 15 5.1 L 9 3 L 3.36 4.9 C 3.15 4.97 3 5.15 3 5.38 L 3 20.5 C 3 20.78 3.22 21 3.5 21 L 3.66 20.97 L 9 18.9 L 15 21 L 20.64 19.1 C 20.85 19.03 21 18.85 21 18.62 L 21 3.5 C 21 3.22 20.78 3 20.5 3 Z M 15 19 L 9 16.89 L 9 5 L 15 7.11 L 15 19 Z"/>
+        </vector>
+    </aapt:attr>
+    <target android:name="path">
+        <aapt:attr name="android:animation">
+            <objectAnimator
+                android:propertyName="pathData"
+                android:duration="300"
+                android:valueFrom="M 18.667 10.5 L 15.333 10.5 L 12 10.5 L 8.667 10.5 L 5.333 10.5 C 4.222 10.5 3.111 10.5 2 10.5 C 2 10.5 2 10.5 2 10.5 C 2 11.167 2 11.833 2 12.5 C 3.111 12.5 4.222 12.5 5.333 12.5 L 8.667 12.5 L 12 12.5 L 15.333 12.5 C 16.444 12.5 17.556 12.5 18.667 12.5 C 19.778 12.5 20.889 12.5 22 12.5 C 22 11.833 22 11.167 22 10.5 C 20.889 10.5 19.778 10.5 18.667 10.5 M 22 17.5 L 2 17.5 L 2 15.5 L 2 15.5 L 22 15.5 L 22 17.5 M 2 5.5 L 22 5.5 L 22 7.5 L 2 7.5 L 2 5.5 L 2 5.5"
+                android:valueTo="M 20.5 3 L 20.34 3.03 L 15 5.1 L 9 3 L 3.36 4.9 C 3.15 4.97 3 5.15 3 5.38 C 3 10.42 3 15.46 3 20.5 C 3 20.78 3.22 21 3.5 21 C 3.553 20.99 3.607 20.98 3.66 20.97 L 9 18.9 L 15 21 L 20.64 19.1 C 20.85 19.03 21 18.85 21 18.62 C 21 13.58 21 8.54 21 3.5 C 21 3.22 20.78 3 20.5 3 C 20.5 3 20.5 3 20.5 3 M 15 19 L 9 16.89 L 9 5 L 15 7.11 L 15 19 L 15 19 M 12 6.5 L 12 6.5 L 12 6.5 L 12 6.5 L 12 6.5 L 12 6.5"
+                android:valueType="pathType"
+                android:interpolator="@android:interpolator/fast_out_slow_in"/>
+        </aapt:attr>
+    </target>
+</animated-vector>

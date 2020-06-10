@@ -19,10 +19,13 @@ import androidx.lifecycle.ViewModelProviders;
 
 import com.gingergear.BusStopv3.InfoClasses;
 import com.gingergear.BusStopv3.Internet;
+import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
 import com.gingergear.BusStopv3.SaveData;
+import com.gingergear.BusStopv3.ui.Map.MapFragment;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -61,10 +64,6 @@ public class RiderFragment extends Fragment {
         View root = inflater.inflate(R.layout.rider_bus_fragment, container, false);
 
         statusBar = root.findViewById(R.id.statusBar);
-
-        FirstSchool = root.findViewById(R.id.busone);
-        SecondSchool = root.findViewById(R.id.bustwo);
-        ThirdSchool = root.findViewById(R.id.busthree);
 
         SchoolButtons[0] = FirstSchool;
         SchoolButtons[1] = SecondSchool;
@@ -108,6 +107,33 @@ public class RiderFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
 
+                    int index = 0;
+                    for (String routes : InfoClasses.myInfo.BusRoutes) {
+
+                        if (routes != "null") {
+                            layouts[index].setVisibility(View.GONE);
+                            textViews[index].setText("~");
+                        }
+
+                        index += 1;
+
+                    }
+
+                    InfoClasses.myInfo.ZonedSchools.clear();
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.myInfo.ZonedSchools.add("null");
+
+                    InfoClasses.myInfo.BusRoutes.clear();
+                    InfoClasses.myInfo.BusRoutes.add("null");
+                    InfoClasses.myInfo.BusRoutes.add("null");
+                    InfoClasses.myInfo.BusRoutes.add("null");
+                    SaveData.SaveBusRoutes();
+
+                    InfoClasses.myInfo.myBuses.clear();
+                    MainActivity.mMap.clear();
+                    MainActivity.UpdatesAvailable = true;
+
                     Internet.GetZonedSchools RGC = new Internet.GetZonedSchools(getContext());
                     RGC.execute(InfoClasses.myInfo.Address, "true");
 
@@ -119,12 +145,29 @@ public class RiderFragment extends Fragment {
                             requireActivity().runOnUiThread(new Runnable() {
                                 public void run() {
 
-                                    newBusButton.setText("Add a new bus");
+                                    newBusButton.setText("Add new buses");
 
-                                    if (!InfoClasses.myInfo.ZonedSchools.contains("null")) {
+                                    if (!InfoClasses.myInfo.ZonedSchools.contains("null") && !InfoClasses.myInfo.BusRoutes.contains("null")) {
+                                        MainActivity.UpdatesAvailable = true;
 
                                         Toast.makeText(getContext(), "You buses were added successfully", Toast.LENGTH_SHORT).show();
+                                        Internet.joinRoute_AsRider();
+
+                                        int index = 0;
+                                        for (String routes : InfoClasses.myInfo.BusRoutes) {
+
+                                            if (routes != "null") {
+                                                layouts[index].setVisibility(View.VISIBLE);
+                                                textViews[index].setText(routes);
+                                            }
+
+                                            index += 1;
+
+                                        }
+
+                                        Internet.joinRoute_AsRider();
                                         SaveData.SaveBusRoutes();
+
                                     } else {
 
                                         InfoClasses.myInfo.ZonedSchools.clear();

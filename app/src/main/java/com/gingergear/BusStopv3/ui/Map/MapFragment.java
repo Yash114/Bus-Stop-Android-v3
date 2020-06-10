@@ -40,11 +40,6 @@ public class MapFragment extends Fragment {
     //map Objects
     public static PolylineOptions mpolyline;
     public static String time = "~ ";
-    public static Marker theBus;
-    public static Marker me;
-
-    private static BitmapDescriptor myIcon;
-    public static BitmapDescriptor busIcon;
 
     private static Boolean unFocused = true;
 
@@ -57,15 +52,12 @@ public class MapFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Map;
-
+        MainActivity.UpdatesAvailable = true;
         temp = null;
         Last_Bus_Current_Location = null;
 
         mapViewModel = ViewModelProviders.of(this).get(MapViewModel.class);
         root = inflater.inflate(R.layout.map_fragment, container, false);
-
-        myIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(getContext(), R.drawable.kid));
-        busIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(getContext(), R.drawable.bus));
 
         try {
             MainActivity.mapSupportFragment = (SupportMapFragment)
@@ -136,47 +128,56 @@ public class MapFragment extends Fragment {
 
     public static void RecreateMapObjects() {
 
-        MainActivity.mMap.clear();
-
-        me = MainActivity.mMap.addMarker(new MarkerOptions()
-                .icon(myIcon)
+//        MainActivity.mMap.clear();
+//
+        InfoClasses.myInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
+                .icon(InfoClasses.Markers.MyBitmap)
                 .position(new LatLng(0, 0))
                 .title("Your Current Location")
                 .snippet("Click me to set this as your address!")
                 .visible(false));
+        InfoClasses.myInfo.marker.showInfoWindow();
 
         if(InfoClasses.myInfo.savedLocation != null){
-            MapFragment.me.setTitle(InfoClasses.myInfo.Address);
-            MapFragment.me.setSnippet("This is your saved address");
+            InfoClasses.myInfo.marker.setTitle(InfoClasses.myInfo.Address);
+            InfoClasses.myInfo.marker.setSnippet("This is your saved address");
         }
 
-        me.setTag("My Location");
+        InfoClasses.myInfo.marker.setTag("My Location");
 
-        theBus = MainActivity.mMap.addMarker(new MarkerOptions()
-                .icon(busIcon)
+        InfoClasses.DriverBus.marker = MainActivity.mMap.addMarker(new MarkerOptions()
+                .icon(InfoClasses.Markers.BusBitmap)
                 .position(new LatLng(0, 0))
                 .visible(false));
 
         if(InfoClasses.Mode.DRIVER()){
-            MapFragment.me.setTitle("My Current Bus Location");
-            MapFragment.me.setSnippet("Currently performing route: " + InfoClasses.DriverBus.CurrentRoute);
+            InfoClasses.DriverBus.marker.setTitle("My Current Bus Location");
+            InfoClasses.DriverBus.marker.setSnippet("Currently performing route: " + InfoClasses.DriverBus.CurrentRoute);
         }
 
-        theBus.setTag("Bus' Location");
-        try {
-            MainActivity.mMap.addPolyline(mpolyline);
+        InfoClasses.DriverBus.marker.setTag("Bus' Location");
+//
+        for(InfoClasses.Buses bus : InfoClasses.myInfo.myBuses.values()){
 
-            MainActivity.mMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
-
-                @Override
-                public void onPolylineClick(Polyline polyline) {
-
-                    Log.i("intern", "Please move to a residential area");
-                }
-            });
-
-        } catch (NullPointerException e) {
+            if(bus.marker == null){
+                bus.createMarker();
+            }
         }
+//
+//        try {
+//            MainActivity.mMap.addPolyline(mpolyline);
+//
+//            MainActivity.mMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
+//
+//                @Override
+//                public void onPolylineClick(Polyline polyline) {
+//
+//                    Log.i("intern", "Please move to a residential area");
+//                }
+//            });
+//
+//        } catch (NullPointerException e) {
+//        }
     }
 
     public static void unfocusMap() {
@@ -191,20 +192,5 @@ public class MapFragment extends Fragment {
             MainActivity.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             unFocused = true;
         }
-    }
-
-    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
-        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            drawable = (DrawableCompat.wrap(drawable)).mutate();
-        }
-
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
-                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        return bitmap;
     }
 }

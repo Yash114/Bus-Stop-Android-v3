@@ -9,10 +9,11 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="172dp"
-        android:background="@drawable/ic_top_01"
+        android:layout_height="220dp"
+        android:background="@drawable/ic_topv2_01"
         android:orientation="vertical"
-        android:paddingBottom="24dp">
+        android:paddingBottom="24dp"
+        android:paddingTop="80dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -21,7 +22,7 @@
             android:text="Your Buses"
             android:textAlignment="center"
             android:textSize="42dp"
-            android:textColor="#FFFFFF"/>
+        android:textColor="#FFFFFF"/>
 
         <TextView
             android:id="@+id/statusBar"
@@ -143,44 +144,11 @@
         android:id="@+id/newBusButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add a new bus"
+        android:text="Add new buses"
         android:background="@drawable/buttonshape"
         android:textColor="#FFFFFF"
         android:textSize="16dp"
         android:layout_margin="16dp"/>
-
-    <Button
-        android:id="@+id/busone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Put label here"
-        android:background="@drawable/buttonshape"
-        android:textColor="#FFFFFF"
-        android:textSize="16dp"
-        android:layout_margin="4dp"
-        android:visibility="gone"/>
-
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:text="Put label here"
-        android:id="@+id/bustwo"
-        android:background="@drawable/buttonshape"
-        android:textColor="#FFFFFF"
-        android:textSize="16dp"
-        android:layout_margin="4dp"
-        android:visibility="gone"/>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/busthree"
-        android:text="Put label here"
-        android:background="@drawable/buttonshape"
-        android:textColor="#FFFFFF"
-        android:textSize="16dp"
-        android:layout_margin="4dp"
-        android:visibility="gone"/>
 
 
 </LinearLayout>

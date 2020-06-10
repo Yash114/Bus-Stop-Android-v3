@@ -67,12 +67,12 @@ public class Background_Update extends IntentService {
             if (InfoClasses.Status.Status != InfoClasses.Status.PAUSED && InfoClasses.Status.Status != InfoClasses.Status.Disconnected && InfoClasses.Status.Status != InfoClasses.Status.DONE) {
 
                 InfoClasses.Bluetooth.bluetoothGatt = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, false, new BluetoothGattCallback() {
+
                     @Override
                     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
                         super.onConnectionStateChange(gatt, status, newState);
 
-//                        DriverFrag.CURRENTLYCONNECTED = BluetoothProfile.STATE_CONNECTED == newState;
 
                         Log.e("Bluetooth", InfoClasses.Bluetooth.isConnected ? "Connected" : "Not Connected");
 
@@ -201,9 +201,12 @@ public class Background_Update extends IntentService {
                             }
                         } else {
 
-                            counter += 1;
+//                            counter += 1;
 
                         }
+                    } else {
+                        stopSelf();
+
                     }
 
                 } else if (InfoClasses.Status.Status == InfoClasses.Status.PAUSED) {

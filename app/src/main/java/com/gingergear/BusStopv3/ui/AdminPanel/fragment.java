@@ -22,6 +22,7 @@ public class fragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Admin;
+        InfoClasses.Mode.ChangeToAdminMode(getContext());
 
         homeViewModel = ViewModelProviders.of(this).get(model.class);
         View root = inflater.inflate(R.layout.adminsettings_fragment, container, false);
