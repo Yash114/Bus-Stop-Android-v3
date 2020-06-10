@@ -18,7 +18,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/Applications/Android%20Studio.app/Contents/plugins/android/lib/android.jar!/images/material/icons/materialicons/map/baseline_map_24.xml" />
+                                      <entry key="url" value="jar:file:/Applications/Android%20Studio.app/Contents/plugins/android/lib/android.jar!/images/material/icons/materialicons/search/baseline_search_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -28,9 +28,8 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="assetSourceType" value="FILE" />
-                            <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_topv2_01" />
+                            <entry key="color" value="ff0e00" />
+                            <entry key="outputName" value="ic_baseline_search_24" />
                             <entry key="sourceFile" value="$PROJECT_DIR$/../BusStop-Pictures/topv2-01.svg" />
                           </map>
                         </option>
