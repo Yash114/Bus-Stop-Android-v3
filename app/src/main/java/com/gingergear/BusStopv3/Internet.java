@@ -49,15 +49,12 @@ public class Internet {
     private static String locationIQ_URL = "https://us1.locationiq.com/v1/reverse.php";
     private static String getLocationIQ_KEY = "5b89c4a4581b3a";
 
-    //Necessary data for reading the Bus's Location
-    private static String websitePath = "https://www.gakapparel.com/BUSstuff/gg.php";
-
     //Necessary data for reading from the WEBQUERY website
-    private static String WebQuery_URL = "https://api.busstopapi.com/webquery-request?";
+    private static String WebQuery_URL = "https://k14jsk25oh.execute-api.us-east-2.amazonaws.com/dev/webquery-request?";
     private static String WebQuery_SessionID;
 
     //Websocket Stuff
-    private static String WebQuery_path = "wss://60xx5h0jma.execute-api.us-east-2.amazonaws.com/dev";
+    private static String WebQuery_path = "wss://60xx5h0jma.execute-api.us-east-2.amazonaws.com/Novel";
     private static WebSocket ws;
 
     //Stores the zoned schools' data
@@ -484,6 +481,46 @@ public class Internet {
 
     }
 
+    public static void join_AsAdmin() {
+
+        if (SocketConnected) {
+
+            String county = "Henry";
+
+            String dataOut = "{\"action\" : \"joinBus\" , \"data\" : {\"county\" : \"" +
+                    county + "\"}}";
+
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    public static void retrieveAllLocations(){
+
+        if (SocketConnected) {
+
+            String county = "Henry";
+
+            String dataOut = "{\"action\" : \"getBusLocations\", \"data\" : {\"county\" : \"" +
+                    county + "\"}}";
+
+            ws.send(dataOut);
+            Log.e("websocket", "Connected yuor bus");
+
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+
+        }
+    }
+
     public static void joinRoute_AsBus(String busNumber, String busRouteID) {
 
         if (SocketConnected) {
@@ -535,17 +572,19 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
-            ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.myInfo.BusRoutes;
+            if(InfoClasses.myInfo.BusRoutes.size() == 3) {
+                String county = "Henry";
+                ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.myInfo.BusRoutes;
 
-            String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"route1\" : \"" +
-                    busRouteID.get(0) + "\", \"route2\" : \"" +
-                    busRouteID.get(1) + "\", \"route3\" : \"" +
-                    busRouteID.get(2) + "\"}}";
+                String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
+                        county + "\" , \"route1\" : \"" +
+                        busRouteID.get(0) + "\", \"route2\" : \"" +
+                        busRouteID.get(1) + "\", \"route3\" : \"" +
+                        busRouteID.get(2) + "\"}}";
 
-            Log.e("websocket", dataOut);
-            ws.send(dataOut);
+                Log.e("websocket", dataOut);
+                ws.send(dataOut);
+            }
         } else {
 
             Log.e("websocket", "ERROR");

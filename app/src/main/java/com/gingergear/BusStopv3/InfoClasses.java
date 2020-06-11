@@ -30,6 +30,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.xmlpull.v1.sax2.Driver;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -181,8 +183,8 @@ public class InfoClasses {
 
     public static class myInfo {
 
-        public static List<String> BusRoutes = new ArrayList<>(Collections.nCopies(3, "null"));
-        public static List<String> ZonedSchools = new ArrayList<>(Collections.nCopies(3, "null"));
+        public static List<String> BusRoutes = new ArrayList<>();
+        public static List<String> ZonedSchools = new ArrayList<>();
 
         public static List<String> SchoolURL = new ArrayList<>();
         public static Hashtable<String,Buses> myBuses = new Hashtable<>();
@@ -402,9 +404,15 @@ public class InfoClasses {
             return DRIVER == Rider_Driver;
         }
 
+        static public boolean ADMIN() {
+
+            return ADMIN == Rider_Driver;
+        }
+
+
         public static void ChangeToDriverMode(Context context) {
 
-            if (Rider_Driver == RIDER) {
+            if (!DRIVER()) {
 
                 Rider_Driver = DRIVER;
                 MainActivity.ModeJustChanged();
@@ -419,7 +427,7 @@ public class InfoClasses {
 
         public static void ChangeToRiderMode(Context context) {
 
-            if (Rider_Driver == DRIVER) {
+            if (!RIDER()) {
 
                 MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
@@ -469,8 +477,16 @@ public class InfoClasses {
 
         public static void ChangeToAdminMode(Context context) {
 
-            Rider_Driver = ADMIN;
-            Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
+            if(ADMIN()) {
+                Rider_Driver = ADMIN;
+                MainActivity.ModeJustChanged();
+                DriverBus.disconnectFromBus(context);
+                Internet.join_AsAdmin();
+                Internet.join_AsAdmin();
+                Internet.retrieveAllLocations();
+
+                Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

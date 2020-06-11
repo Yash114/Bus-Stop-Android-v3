@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="spinner">Spinner</string>
+
+    <string-array name="search_modes">
+        <item>Bus Number</item>
+        <item>Bus Route</item>
+        <item>Bus Driver Name</item>
+    </string-array>
+</resources>

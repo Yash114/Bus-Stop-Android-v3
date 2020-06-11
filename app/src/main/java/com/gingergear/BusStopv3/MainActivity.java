@@ -32,7 +32,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static ArrayList<String> routes;
 
     //UI variables
+    private static NavigationView navigationView;
     private final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     LocationRequest mLocationRequest;
 
@@ -110,13 +113,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Internet.CreateWebSocketConnection();
 
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
 
         final ImageButton navButton = findViewById(R.id.navButton);
-        final AnimatedVectorDrawableCompat Map = AnimatedVectorDrawableCompat.create(getApplicationContext(), R.drawable.maptolist);
-        final AnimatedVectorDrawableCompat List = AnimatedVectorDrawableCompat.create(getApplicationContext(), R.drawable.avd_anim);
-
-        navButton.setBackground(Map);
+        final ImageButton mapButton = findViewById(R.id.mapButton);
 
         navButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,6 +125,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 drawer.openDrawer(Gravity.LEFT);
             }
         });
+
+        mapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                ChangeToMapView();
+            }
+        });
+
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -188,14 +197,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (SaveData.ReadAppMode() != -1) {
 
             InfoClasses.Mode.Rider_Driver = SaveData.ReadAppMode();
-            Log.i("tag", InfoClasses.Mode.Rider_Driver == 0 ? "RIDER" : "DRIVER");
+
+            if (InfoClasses.Mode.Rider_Driver == 2) {
+                Log.i("tag", "ADMIN");
+
+            } else {
+
+                Log.i("tag", InfoClasses.Mode.Rider_Driver == 0 ? "RIDER" : "DRIVER");
+            }
+        }
+
+        if (InfoClasses.Mode.ADMIN()) {
+
+            Internet.join_AsAdmin();
         }
 
         if (InfoClasses.Mode.DRIVER()) {
 
             ArrayList<String> data = SaveData.ReadBusCompletedRoutes();
 
-            if(data != null) {
+            if (data != null) {
                 InfoClasses.DriverBus.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
             }
         }
@@ -248,12 +269,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public static void GoToMap() {
-
-        fragmentManager.beginTransaction().replace(R.id.nav_host_fragment, new MapFragment()).commit();
-
-
-    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -341,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Creates a public instance of the Google map
         mMap = googleMap;
 
+        mMap.isTrafficEnabled();
         //Sets various UI options of the Google map
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
@@ -404,59 +420,63 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    if (marker.getTag() == InfoClasses.myInfo.marker.getTag()) {
+                    if (InfoClasses.Status.Map()) {
 
-                        if (InfoClasses.myInfo.savedLocation == null) {
+                        if (marker.getTag() == InfoClasses.myInfo.marker.getTag()) {
 
-                            InfoClasses.myInfo.CurrentLocation = InfoClasses.myInfo.marker.getPosition();
-                            InfoClasses.myInfo.savedLocation = InfoClasses.myInfo.marker.getPosition();
+                            if (InfoClasses.myInfo.savedLocation == null) {
 
-                            SaveData.SaveMyHomePos(InfoClasses.myInfo.marker.getPosition());
+                                InfoClasses.myInfo.CurrentLocation = InfoClasses.myInfo.marker.getPosition();
+                                InfoClasses.myInfo.savedLocation = InfoClasses.myInfo.marker.getPosition();
 
-                            Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
-                            RGC.execute(InfoClasses.myInfo.CurrentLocation.latitude, InfoClasses.myInfo.CurrentLocation.longitude);
+                                SaveData.SaveMyHomePos(InfoClasses.myInfo.marker.getPosition());
 
-                            Toast.makeText(getBaseContext(), "You just set your default address to this position", Toast.LENGTH_LONG).show();
+                                Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
+                                RGC.execute(InfoClasses.myInfo.CurrentLocation.latitude, InfoClasses.myInfo.CurrentLocation.longitude);
 
-                            if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                                // TODO: Consider calling
-                                //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
-                            }
-                            mMap.setMyLocationEnabled(false);
+                                Toast.makeText(getBaseContext(), "You just set your default address to this position", Toast.LENGTH_LONG).show();
 
-                            InfoClasses.myInfo.marker.setTitle("Loading...");
-                            InfoClasses.myInfo.marker.setSnippet("This is your saved address");
-
-                            new Timer().schedule(new TimerTask() {
-                                @Override
-                                public void run() {
-                                    runOnUiThread(new Runnable() {
-                                        public void run() {
-                                            InfoClasses.myInfo.marker.setTitle(InfoClasses.myInfo.Address);
-                                            InfoClasses.myInfo.marker.showInfoWindow();
-                                        }
-                                    });
+                                if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                                    // TODO: Consider calling
+                                    //    ActivityCompat#requestPermissions
+                                    // here to request the missing permissions, and then overriding
+                                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                    //                                          int[] grantResults)
+                                    // to handle the case where the user grants the permission. See the documentation
+                                    // for ActivityCompat#requestPermissions for more details.
                                 }
-                            }, 700);
+                                mMap.setMyLocationEnabled(false);
 
+                                InfoClasses.myInfo.marker.setTitle("Loading...");
+                                InfoClasses.myInfo.marker.setSnippet("This is your saved address");
+
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        runOnUiThread(new Runnable() {
+                                            public void run() {
+                                                InfoClasses.myInfo.marker.setTitle(InfoClasses.myInfo.Address);
+                                                InfoClasses.myInfo.marker.showInfoWindow();
+                                            }
+                                        });
+                                    }
+                                }, 700);
+
+                            } else {
+                                Toast.makeText(getBaseContext(), "This is already your current location", Toast.LENGTH_LONG).show();
+                                Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                v.vibrate(100);
+                            }
+                            markerSelected = false;
                         } else {
-                            Toast.makeText(getBaseContext(), "This is already your current location", Toast.LENGTH_LONG).show();
-                            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                            v.vibrate(100);
+                            markerSelected = true;
                         }
-                        markerSelected = false;
-                    } else {
-                        markerSelected = true;
+                        return false;
                     }
+
                     return false;
                 }
             });
-
             new InfoClasses.Markers(this);
             MapFragment.RecreateMapObjects();
         }
@@ -558,7 +578,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             } else {
 
                                 if (UpdatesAvailable) {
-                                    if(InfoClasses.Status.Map()) {
+                                    if (InfoClasses.Status.Map()) {
 
                                         UpdatesAvailable = false;
                                     }
@@ -575,7 +595,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     for (LatLng p : positions) {
 
                                         double i = distanceBetweenLocations(InfoClasses.myInfo.CurrentLocation, p);
-                                        Log.i("tag", Double.toString(i));
 
                                         if (i > longestLength) {
                                             longestLength = i;
@@ -594,6 +613,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.savedLocation);
                                     InfoClasses.myInfo.marker.setVisible(true);
                                 }
+                            }
+                        } else if (InfoClasses.Mode.ADMIN()) {
+
+                            if (UpdatesAvailable) {
+                                if (InfoClasses.Status.Map()) {
+
+                                    UpdatesAvailable = false;
+                                }
+                                InfoClasses.myInfo.updateBusPositions();
+
+                                ArrayList<LatLng> positions = new ArrayList<>();
+                                for (InfoClasses.Buses bus : InfoClasses.myInfo.myBuses.values()) {
+
+                                    positions.add(bus.BusLocation);
+                                }
+
+                                double longestLength = 200;
+
+                                for (LatLng p : positions) {
+
+                                    double i = distanceBetweenLocations(InfoClasses.myInfo.CurrentLocation, p);
+
+                                    if (i > longestLength) {
+                                        longestLength = i;
+                                    }
+                                }
+
+                                if (!markerSelected) {
+                                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                                            .target(InfoClasses.myInfo.savedLocation)
+                                            .zoom((float) -(Math.log(longestLength * 19 / 591657550.5) / Math.log(2))) // Gets the correct zoom factor from the distance vairabe
+                                            .bearing(90)                // Sets the orientation of the camera to east
+                                            .build();                   // Creates a CameraPosition from the builder
+                                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                                }
+                                InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.savedLocation);
+                                InfoClasses.myInfo.marker.setVisible(true);
                             }
                         }
                     }
@@ -620,7 +677,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return bitmap;
     }
 
-    private double distanceBetweenLocations(LatLng x, LatLng y){
+    private double distanceBetweenLocations(LatLng x, LatLng y) {
 
         double q = x.latitude - y.latitude;
         double p = x.longitude - y.longitude;
@@ -632,6 +689,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         MapFragment.RecreateMapObjects();
         MapFragment.unfocusMap();
+    }
+
+    static void ChangeToMapView() {
+        FragmentTransaction trans = fragmentManager.beginTransaction();
+        trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+        trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+        MainActivity.UpdatesAvailable = true;
+
     }
 
     @Override
