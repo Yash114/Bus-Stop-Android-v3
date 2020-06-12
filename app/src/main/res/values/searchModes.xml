@@ -6,5 +6,7 @@
         <item>Bus Number</item>
         <item>Bus Route</item>
         <item>Bus Driver Name</item>
+        <item>Add New Bus</item>
+
     </string-array>
 </resources>

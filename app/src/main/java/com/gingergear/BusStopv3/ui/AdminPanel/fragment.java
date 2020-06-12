@@ -15,6 +15,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -36,6 +37,16 @@ public class fragment extends Fragment implements AdapterView.OnItemSelectedList
     private EditText searchBar;
     private String searchMode;
     private Button searchButton;
+    private LinearLayout BusSettingsLayout;
+
+    private TextView BusInfo;
+
+    private Button ViewOnMap;
+    private Button Text;
+    private Button EditRouteInfo;
+    private Button EditBusLoginInfo;
+
+
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -45,6 +56,8 @@ public class fragment extends Fragment implements AdapterView.OnItemSelectedList
         homeViewModel = ViewModelProviders.of(this).get(model.class);
         View root = inflater.inflate(R.layout.adminsettings_fragment, container, false);
 
+        BusSettingsLayout = root.findViewById(R.id.busAdminControl);
+
         searchBar = root.findViewById(R.id.search);
 
         searchButton = root.findViewById(R.id.searchButton);
@@ -53,8 +66,36 @@ public class fragment extends Fragment implements AdapterView.OnItemSelectedList
             public void onClick(View v) {
 
                 hideKeyboard(getActivity());
-                searchBar.setText("");
                 searchBar.clearFocus();
+
+
+                switch (searchMode){
+
+                    case("Bus Number"):
+                        String Input = searchBar.getText().toString();
+                        if(InfoClasses.AdminInfo.CountyBuses.contains(Input)) {
+
+                            Log.i("tag", "found that Bus");
+                            String Results = InfoClasses.AdminInfo.CountyBuses.get(Input).toString();
+                            BusSettingsLayout.setVisibility(View.VISIBLE);
+                        }
+                        break;
+
+                    case("Bus Route"):
+
+                        break;
+
+                    case("Bus Driver Name"):
+
+                        break;
+
+                }
+                if(searchMode.equals("Bus Number")) {
+
+
+                }
+
+                searchBar.setText("");
             }
         });
 
@@ -87,6 +128,17 @@ public class fragment extends Fragment implements AdapterView.OnItemSelectedList
 
         searchMode = parent.getItemAtPosition(position).toString();
         searchBar.setHint("Search for " + searchMode);
+
+        if(searchMode.equals("Add New Bus")){
+
+            searchBar.setVisibility(View.GONE);
+            searchButton.setVisibility(View.GONE);
+
+        } else {
+
+            searchBar.setVisibility(View.VISIBLE);
+            searchButton.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -120,4 +172,10 @@ public class fragment extends Fragment implements AdapterView.OnItemSelectedList
         }
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+//
+//    private void InvokeBusSettings(String busNumber){
+//
+//        BusInfo.setText("#" + busNumber +
+//                );
+//    }
 }
