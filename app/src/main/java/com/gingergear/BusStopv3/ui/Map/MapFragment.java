@@ -1,19 +1,15 @@
 package com.gingergear.BusStopv3.ui.Map;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.BounceInterpolator;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -21,15 +17,11 @@ import com.gingergear.BusStopv3.InfoClasses;
 import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MapFragment extends Fragment {
@@ -51,8 +43,6 @@ public class MapFragment extends Fragment {
     private MapViewModel mapViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        InfoClasses.Status.ActiveFragment = InfoClasses.Status.Map;
-        MainActivity.UpdatesAvailable = true;
         temp = null;
         Last_Bus_Current_Location = null;
 
@@ -67,16 +57,27 @@ public class MapFragment extends Fragment {
 
         } catch (NullPointerException e) { }
 
-        mainActivity.Instantiate_Map_Methods();
-
         return root;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        mainActivity.Instantiate_Map_Methods();
+        MainActivity.UpdatesAvailable = true;
+        MainActivity.markerSelected = false;
+        if(InfoClasses.Status.ActiveFragment != -1) {
+            MainActivity.updates(true);
+        }
+
+        InfoClasses.Status.ActiveFragment = InfoClasses.Status.Map;
+
+    }
 
     public static boolean coordAuthenticatior(LatLng Coords) {
 
-        if ((InfoClasses.Bluetooth.isConnected && InfoClasses.Status.inRoute && InfoClasses.Mode.Rider_Driver == InfoClasses.Mode.DRIVER) || InfoClasses.Mode.Rider_Driver == InfoClasses.Mode.RIDER) {
-            if (Coords != null) {
+        if (Coords != null) {
                 if (temp == null) {
                     if (Last_Bus_Current_Location != null) {
                         if (Last_Bus_Current_Location != Coords) {
@@ -91,7 +92,7 @@ public class MapFragment extends Fragment {
                                     Math.abs(Coords.longitude - Last_Bus_Current_Location.longitude) < 0.2) {
 
                                 if (Math.abs(Last_Bus_Current_Location.latitude - Coords.latitude) > 0.00001 ||
-                                        Math.abs(Last_Bus_Current_Location.longitude - Coords.longitude) > 0.000010) {
+                                        Math.abs(Last_Bus_Current_Location.longitude - Coords.longitude) > 0.00001) {
 
                                     if (Coords != Last_Bus_Current_Location) {
                                         Last_Bus_Current_Location = Coords;
@@ -119,10 +120,6 @@ public class MapFragment extends Fragment {
                 }
 
             }
-        } else {
-            unfocusMap();
-        }
-
         return false;
     }
 
@@ -130,34 +127,34 @@ public class MapFragment extends Fragment {
 
 //        MainActivity.mMap.clear();
 //
-        InfoClasses.myInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
+        InfoClasses.MyInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
                 .icon(InfoClasses.Markers.MyBitmap)
                 .position(new LatLng(0, 0))
                 .title("Your Current Location")
                 .snippet("Click me to set this as your address!")
                 .visible(false));
-        InfoClasses.myInfo.marker.showInfoWindow();
+        InfoClasses.MyInfo.marker.showInfoWindow();
 
-        if(InfoClasses.myInfo.savedLocation != null){
-            InfoClasses.myInfo.marker.setTitle(InfoClasses.myInfo.Address);
-            InfoClasses.myInfo.marker.setSnippet("This is your saved address");
+        if(InfoClasses.MyInfo.savedLocation != null){
+            InfoClasses.MyInfo.marker.setTitle(InfoClasses.MyInfo.Address);
+            InfoClasses.MyInfo.marker.setSnippet("This is your saved address");
         }
 
-        InfoClasses.myInfo.marker.setTag("My Location");
+        InfoClasses.MyInfo.marker.setTag("My Location");
 
-        InfoClasses.DriverBus.marker = MainActivity.mMap.addMarker(new MarkerOptions()
+        InfoClasses.BusInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
                 .icon(InfoClasses.Markers.BusBitmap)
                 .position(new LatLng(0, 0))
                 .visible(false));
 
         if(InfoClasses.Mode.DRIVER()){
-            InfoClasses.DriverBus.marker.setTitle("My Current Bus Location");
-            InfoClasses.DriverBus.marker.setSnippet("Currently performing route: " + InfoClasses.DriverBus.CurrentRoute);
+            InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
+            InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
         }
 
-        InfoClasses.DriverBus.marker.setTag("Bus' Location");
+        InfoClasses.BusInfo.marker.setTag("Bus' Location");
 //
-        for(InfoClasses.Buses bus : InfoClasses.myInfo.myBuses.values()){
+        for(InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()){
 
             if(bus.marker == null){
                 bus.createMarker();
@@ -192,5 +189,34 @@ public class MapFragment extends Fragment {
             MainActivity.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
             unFocused = true;
         }
+    }
+
+    public static void updatePosition(final Marker myMarker, LatLng toPosition) {
+
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        final long duration = 1000;
+
+        final BounceInterpolator interpolator = new BounceInterpolator();
+        myMarker.setVisible(true);
+
+        double Lat = toPosition.latitude - myMarker.getPosition().latitude;
+        double Lng = toPosition.longitude - myMarker.getPosition().longitude;
+        final LatLng begin = myMarker.getPosition();
+        final LatLng distanceCoor = new LatLng(Lat, Lng);
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+
+                myMarker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
+
+                if (t > 0.0) {
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
+                }
+            }
+        });
     }
 }

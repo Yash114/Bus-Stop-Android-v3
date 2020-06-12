@@ -10,7 +10,6 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Interpolator;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
@@ -23,21 +22,16 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.xmlpull.v1.sax2.Driver;
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -46,42 +40,13 @@ import static com.gingergear.BusStopv3.SaveData.ReadMySavedPos;
 
 public class InfoClasses {
 
-    public static class DriverBus {
+    public static String county;
+    public static Hashtable<String,LatLng> countyCenters = new Hashtable<>();
 
-        public static String BusNumber = "14-71";
-        public static LatLng BusLocation;
-        public static String BusDriver;
-        public static ArrayList<String> AssignedBusRoutes;
-        public static ArrayList<String> CompletedBusRoutes = new ArrayList<>();
-        public static Marker marker;
+    public static void commitCounty(String County){
 
-        public static String CurrentRoute;
-
-        public static void disconnectFromBus(Context context) {
-
-            if (Bluetooth.isConnected) {
-                InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
-                Internet.disconnectYourBus(BusNumber, BusLocation);
-                context.stopService(BusControlFragment.intent);
-                Bluetooth.isConnected = false;
-                CurrentRoute = null;
-            }
-
-        }
-
-        public static void connectToBus() {
-
-            MainActivity mainActivity = new MainActivity();
-            mainActivity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                    InfoClasses.Bluetooth.connect();
-                }
-
-            });
-        }
-
+        county = County;
+        countyCenters.put("Henry", new LatLng(33.4479112,-84.1479229));
     }
 
     public static class Markers {
@@ -130,6 +95,12 @@ public class InfoClasses {
 
         }
 
+        public Buses(String busNumber, LatLng busLocation){
+
+            BusNumber = busNumber;
+            BusLocation = busLocation;
+        }
+
         public void createMarker(){
 
             marker = MainActivity.mMap.addMarker(new MarkerOptions()
@@ -151,7 +122,7 @@ public class InfoClasses {
 
                     marker.setTitle(BusNumber);
                 }
-                Log.e("tag", "setting pus pos");
+
                 final Handler handler = new Handler();
                 final long start = SystemClock.uptimeMillis();
                 final long duration = 1000;
@@ -179,9 +150,63 @@ public class InfoClasses {
                 });
             }
         }
+
     }
 
-    public static class myInfo {
+    public static class AdminInfo {
+
+        public static String user;
+        public static Hashtable<String, Buses> CountyBuses = new Hashtable<>();
+
+        public static void updateBusPositions(){
+
+            for(Buses bus : CountyBuses.values()){
+
+                bus.updatePosition();
+            }
+        }
+
+    }
+
+    public static class BusInfo {
+
+        public static String BusNumber = "14-71";
+        public static LatLng BusLocation;
+        public static String BusDriver;
+        public static ArrayList<String> AssignedBusRoutes;
+        public static ArrayList<String> CompletedBusRoutes = new ArrayList<>();
+        public static Marker marker;
+
+        public static String CurrentRoute;
+
+        public static void disconnectFromBus(Context context) {
+
+            if (Bluetooth.isConnected) {
+                InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
+                Internet.disconnectYourBus(BusNumber, BusLocation);
+                context.stopService(BusControlFragment.intent);
+                Bluetooth.isConnected = false;
+                CurrentRoute = null;
+            }
+
+        }
+
+        public static void connectToBus() {
+
+            MainActivity mainActivity = new MainActivity();
+            mainActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    InfoClasses.Bluetooth.connect();
+                }
+
+            });
+        }
+
+    }
+
+    public static class MyInfo {
 
         public static List<String> BusRoutes = new ArrayList<>();
         public static List<String> ZonedSchools = new ArrayList<>();
@@ -284,13 +309,13 @@ public class InfoClasses {
                                 isConnected = true;
                                 isSearching = false;
 
-                                Log.i("Bluetooth", "Successfully Connected to" + DriverBus.BusNumber);
+                                Log.i("Bluetooth", "Successfully Connected to" + BusInfo.BusNumber);
                                 return;
                             }
 
                         }
 
-                        Log.e("Bluetooth", "Unsuccessfully Connected to " + DriverBus.BusNumber);
+                        Log.e("Bluetooth", "Unsuccessfully Connected to " + BusInfo.BusNumber);
                         isSearching = false;
 
                     }
@@ -300,7 +325,7 @@ public class InfoClasses {
                 public void onScanFailed(int errorCode) {
                     super.onScanFailed(errorCode);
 
-                    Log.e(" Bluetooth", "Unsuccessfully Connected to" + DriverBus.BusNumber);
+                    Log.e(" Bluetooth", "Unsuccessfully Connected to" + BusInfo.BusNumber);
 
                     isSearching = false;
 
@@ -363,12 +388,13 @@ public class InfoClasses {
         static public boolean inRoute = false;
         static public int Status = Not_Joined;
 
+
         static public int Map = 0;
         static public int Setting = 1;
         static public int Rider = 2;
         static public int Driver = 3;
         static public int Admin = 4;
-        static public int ActiveFragment = 0;
+        static public int ActiveFragment = -1;
 
         public static boolean Map(){
             return ActiveFragment == Map;
@@ -389,7 +415,7 @@ public class InfoClasses {
 
     public static class Mode {
 
-        static public int ADMIN = 1;
+        static public int ADMIN = 2;
         static public int DRIVER = 1;
         static public int RIDER = 0;
         static public int Rider_Driver = RIDER;
@@ -416,11 +442,12 @@ public class InfoClasses {
 
                 Rider_Driver = DRIVER;
                 MainActivity.ModeJustChanged();
-                Internet.joinRoute_AsBus(DriverBus.BusNumber);
-                Internet.fetchYourRoutes(DriverBus.BusNumber);
+                Internet.joinRoute_AsBus(BusInfo.BusNumber);
+                Internet.fetchYourRoutes(BusInfo.BusNumber);
                 SaveData.SaveAppMode(DRIVER);
 
                 Toast.makeText(context, "You just entered the secret Bus Driver Mode!", Toast.LENGTH_SHORT).show();
+                BusInfo.marker.setIcon(Markers.BusBitmap);
 
             }
         }
@@ -437,18 +464,18 @@ public class InfoClasses {
                     ArrayList<String> routes = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[0];
                     ArrayList<String> buses = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
 
-                    InfoClasses.myInfo.BusRoutes.clear();
-                    InfoClasses.myInfo.ZonedSchools.clear();
+                    MyInfo.BusRoutes.clear();
+                    MyInfo.ZonedSchools.clear();
 
-                    InfoClasses.myInfo.BusRoutes.addAll(routes);
-                    InfoClasses.myInfo.ZonedSchools.addAll(buses);
+                    MyInfo.BusRoutes.addAll(routes);
+                    MyInfo.ZonedSchools.addAll(buses);
 
-                    for (String s : InfoClasses.myInfo.ZonedSchools) {
+                    for (String s : MyInfo.ZonedSchools) {
 
                         Log.e("tag", s);
                     }
 
-                    for (String s : InfoClasses.myInfo.BusRoutes) {
+                    for (String s : MyInfo.BusRoutes) {
 
                         Log.e("tag", s);
                     }
@@ -461,15 +488,15 @@ public class InfoClasses {
                 if (savedPos != null) {
                     if (savedPos.latitude != 0) {
 
-                        InfoClasses.myInfo.savedLocation = savedPos;
-                        InfoClasses.myInfo.CurrentLocation = savedPos;
-                        InfoClasses.myInfo.Address = SaveData.ReadMySavedAddy();
+                        MyInfo.savedLocation = savedPos;
+                        MyInfo.CurrentLocation = savedPos;
+                        MyInfo.Address = SaveData.ReadMySavedAddy();
                     }
                 }
 
 
                 MainActivity.ModeJustChanged();
-                DriverBus.disconnectFromBus(context);
+                BusInfo.disconnectFromBus(context);
                 Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
 
             }
@@ -477,13 +504,13 @@ public class InfoClasses {
 
         public static void ChangeToAdminMode(Context context) {
 
-            if(ADMIN()) {
+            if(!ADMIN()) {
                 Rider_Driver = ADMIN;
                 MainActivity.ModeJustChanged();
-                DriverBus.disconnectFromBus(context);
-                Internet.join_AsAdmin();
+                BusInfo.disconnectFromBus(context);
                 Internet.join_AsAdmin();
                 Internet.retrieveAllLocations();
+                SaveData.SaveAppMode(2);
 
                 Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
             }

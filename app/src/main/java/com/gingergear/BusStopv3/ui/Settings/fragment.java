@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +21,7 @@ import com.gingergear.BusStopv3.InfoClasses;
 import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
 import com.gingergear.BusStopv3.SaveData;
-import com.gingergear.BusStopv3.ui.Map.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.util.Objects;
 
 public class fragment extends Fragment {
 
@@ -44,7 +40,7 @@ public class fragment extends Fragment {
         statusBar = root.findViewById(R.id.statusBar);
         resetAddressButton = root.findViewById(R.id.ResetAddress);
 
-        if(InfoClasses.myInfo.savedLocation != null) {
+        if(InfoClasses.MyInfo.savedLocation != null) {
 
             resetAddressButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -61,23 +57,23 @@ public class fragment extends Fragment {
                         return;
                     }
 
-                    InfoClasses.myInfo.ZonedSchools.clear();
-                    InfoClasses.myInfo.ZonedSchools.add("null");
-                    InfoClasses.myInfo.ZonedSchools.add("null");
-                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.MyInfo.ZonedSchools.clear();
+                    InfoClasses.MyInfo.ZonedSchools.add("null");
+                    InfoClasses.MyInfo.ZonedSchools.add("null");
+                    InfoClasses.MyInfo.ZonedSchools.add("null");
 
-                    InfoClasses.myInfo.BusRoutes.clear();
-                    InfoClasses.myInfo.BusRoutes.add("null");
-                    InfoClasses.myInfo.BusRoutes.add("null");
-                    InfoClasses.myInfo.BusRoutes.add("null");
+                    InfoClasses.MyInfo.BusRoutes.clear();
+                    InfoClasses.MyInfo.BusRoutes.add("null");
+                    InfoClasses.MyInfo.BusRoutes.add("null");
+                    InfoClasses.MyInfo.BusRoutes.add("null");
                     SaveData.SaveBusRoutes();
 
-                    InfoClasses.myInfo.myBuses.clear();
+                    InfoClasses.MyInfo.myBuses.clear();
 
                     MainActivity.mMap.setMyLocationEnabled(true);
                     SaveData.SaveMyHomePos(new LatLng(0, 0));
-                    InfoClasses.myInfo.savedLocation = null;
-                    InfoClasses.myInfo.CurrentLocation = null;
+                    InfoClasses.MyInfo.savedLocation = null;
+                    InfoClasses.MyInfo.CurrentLocation = null;
 
                     statusBar.setText("Address is missing");
 

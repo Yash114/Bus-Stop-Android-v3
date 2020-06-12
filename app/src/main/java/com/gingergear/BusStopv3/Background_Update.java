@@ -46,7 +46,7 @@ public class Background_Update extends IntentService {
                 .setSmallIcon(R.drawable.bus)
                 .setColor(16776960)
                 .setContentTitle("Bus Stop")
-                .setContentText("Your Bus: " + InfoClasses.DriverBus.BusNumber + " is currently in route")
+                .setContentText("Your Bus: " + InfoClasses.BusInfo.BusNumber + " is currently in route")
                 .setLargeIcon(getBitmapFromVectorDrawable(this, R.mipmap.ic_launcher_round))
                 .setContentIntent(resultIntent)
                 .setPriority(NotificationCompat.DEFAULT_ALL);
@@ -151,18 +151,18 @@ public class Background_Update extends IntentService {
 
                                 LocationString = "";
 
-                                if (InfoClasses.DriverBus.BusLocation != null && buf != null) {
-                                    if (Math.abs(InfoClasses.DriverBus.BusLocation.latitude - buf.latitude) < 0.2 &&
-                                            Math.abs(InfoClasses.DriverBus.BusLocation.longitude - buf.longitude) < 0.2) {
+                                if (InfoClasses.BusInfo.BusLocation != null && buf != null) {
+                                    if (Math.abs(InfoClasses.BusInfo.BusLocation.latitude - buf.latitude) < 0.2 &&
+                                            Math.abs(InfoClasses.BusInfo.BusLocation.longitude - buf.longitude) < 0.2) {
 
 
-                                        if (Math.abs(InfoClasses.DriverBus.BusLocation.latitude - buf.latitude) > 0.000001 ||
-                                                Math.abs(InfoClasses.DriverBus.BusLocation.longitude - buf.longitude) > 0.000001) {
-                                            if (buf != InfoClasses.DriverBus.BusLocation) {
+                                        if (Math.abs(InfoClasses.BusInfo.BusLocation.latitude - buf.latitude) > 0.000001 ||
+                                                Math.abs(InfoClasses.BusInfo.BusLocation.longitude - buf.longitude) > 0.000001) {
+                                            if (buf != InfoClasses.BusInfo.BusLocation) {
 
-                                                    InfoClasses.DriverBus.BusLocation = buf;
+                                                    InfoClasses.BusInfo.BusLocation = buf;
 
-                                                    Internet.sendLocations(buf, InfoClasses.DriverBus.CurrentRoute, InfoClasses.DriverBus.BusNumber);
+                                                    Internet.sendLocations(buf, InfoClasses.BusInfo.CurrentRoute, InfoClasses.BusInfo.BusNumber);
 
 
                                                     if (InfoClasses.Status.Status != InfoClasses.Status.NORMAL)
@@ -179,9 +179,9 @@ public class Background_Update extends IntentService {
 
                                         } else {
 
-                                            if (Math.abs(buf.latitude - Temp.latitude) < 0.0001 && Math.abs(buf.longitude - Temp.longitude) < 0.0001) {                                                 InfoClasses.DriverBus.BusLocation = buf;
+                                            if (Math.abs(buf.latitude - Temp.latitude) < 0.0001 && Math.abs(buf.longitude - Temp.longitude) < 0.0001) {                                                 InfoClasses.BusInfo.BusLocation = buf;
 
-                                                    Internet.sendLocations(buf, InfoClasses.DriverBus.CurrentRoute, InfoClasses.DriverBus.BusNumber);
+                                                    Internet.sendLocations(buf, InfoClasses.BusInfo.CurrentRoute, InfoClasses.BusInfo.BusNumber);
 
                                                     if (InfoClasses.Status.Status != InfoClasses.Status.NORMAL)
                                                         InfoClasses.Status.Status = InfoClasses.Status.NORMAL;
@@ -228,7 +228,7 @@ public class Background_Update extends IntentService {
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(400);
 
-        InfoClasses.DriverBus.disconnectFromBus(this);
+        InfoClasses.BusInfo.disconnectFromBus(this);
         Thread.currentThread().interrupt();
 
     }

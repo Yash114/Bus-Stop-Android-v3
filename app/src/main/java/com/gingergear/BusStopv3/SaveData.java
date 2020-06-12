@@ -8,6 +8,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Set;
 
 @SuppressWarnings("ConstantConditions")
@@ -64,15 +65,15 @@ public class SaveData {
 
         Set<String> stringSet = new HashSet<>();
 
-        stringSet.add(InfoClasses.myInfo.BusRoutes.get(0));
-        stringSet.add(InfoClasses.myInfo.BusRoutes.get(1));
-        stringSet.add(InfoClasses.myInfo.BusRoutes.get(2));
+        stringSet.add(InfoClasses.MyInfo.BusRoutes.get(0));
+        stringSet.add(InfoClasses.MyInfo.BusRoutes.get(1));
+        stringSet.add(InfoClasses.MyInfo.BusRoutes.get(2));
 
         Set<String> stringSet2 = new HashSet<>();
 
-        stringSet2.add(InfoClasses.myInfo.ZonedSchools.get(0));
-        stringSet2.add(InfoClasses.myInfo.ZonedSchools.get(1));
-        stringSet2.add(InfoClasses.myInfo.ZonedSchools.get(2));
+        stringSet2.add(InfoClasses.MyInfo.ZonedSchools.get(0));
+        stringSet2.add(InfoClasses.MyInfo.ZonedSchools.get(1));
+        stringSet2.add(InfoClasses.MyInfo.ZonedSchools.get(2));
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
         editor.putStringSet("SavedUserRoutes", stringSet);
@@ -87,7 +88,7 @@ public class SaveData {
 
         Set<String> stringSet = new HashSet<>();
 
-        stringSet.addAll(InfoClasses.DriverBus.CompletedBusRoutes);
+        stringSet.addAll(InfoClasses.BusInfo.CompletedBusRoutes);
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
         editor.putStringSet("CompletedBusRoutes", stringSet);
@@ -139,5 +140,32 @@ public class SaveData {
         }
 
         return -1;
+    }
+
+    public static void SaveCounty(String County, String State) {
+
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
+        editor.putString("County", County);
+        editor.putString("State", State);
+
+        editor.apply();
+        Log.i("Save", "Successfully saved: " + County + "as you default county");
+
+    }
+
+    public static Hashtable<String, String> ReadCounty() {
+
+        SharedPreferences data =  mContext.getSharedPreferences(filename, Context.MODE_PRIVATE);
+
+        if (data.contains("County") && data.contains("State")) {
+
+            Hashtable<String, String> out = new Hashtable<>();
+            out.put("County",data.getString("County", null));
+            out.put("State",data.getString("State", null));
+
+            return out;
+        }
+
+        return null;
     }
 }

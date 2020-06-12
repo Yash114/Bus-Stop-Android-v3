@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.drawable.AnimatedImageDrawable;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -20,7 +19,6 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -32,15 +30,14 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat;
 
+import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
 import com.gingergear.BusStopv3.ui.Map.MapFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -55,10 +52,10 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -92,7 +89,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     public static SupportMapFragment mapSupportFragment;
-    private boolean markerSelected = false;
+    public static boolean markerSelected = false;
     public static boolean UpdatesAvailable = true;
 
     AnimationDrawable rocketAnimation;
@@ -106,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         menuInflater = getMenuInflater();
 
         Instantiate_Save_Methods();
-        Instantiate_Map_Methods();
         checkLocationPermission();
 
         fragmentManager = getSupportFragmentManager();
@@ -131,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
 
                 ChangeToMapView();
+                navigationView.setCheckedItem(R.id.nav_map);
             }
         });
 
@@ -170,8 +167,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (InfoClasses.Mode.Rider_Driver == InfoClasses.Mode.DRIVER) {
-            Internet.joinRoute_AsBus(InfoClasses.DriverBus.BusNumber);
-            Internet.fetchYourRoutes(InfoClasses.DriverBus.BusNumber);
+            Internet.joinRoute_AsBus(InfoClasses.BusInfo.BusNumber);
+            Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
         }
     }
 
@@ -210,6 +207,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (InfoClasses.Mode.ADMIN()) {
 
             Internet.join_AsAdmin();
+            Internet.retrieveAllLocations();
+            InfoClasses.commitCounty("Henry");
         }
 
         if (InfoClasses.Mode.DRIVER()) {
@@ -217,8 +216,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ArrayList<String> data = SaveData.ReadBusCompletedRoutes();
 
             if (data != null) {
-                InfoClasses.DriverBus.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
+                InfoClasses.BusInfo.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
             }
+
+            InfoClasses.commitCounty("Henry");
         }
 
         if (InfoClasses.Mode.RIDER()) {
@@ -228,11 +229,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (savedPos != null) {
                 if (savedPos.latitude != 0) {
 
-                    InfoClasses.myInfo.savedLocation = savedPos;
-                    InfoClasses.myInfo.CurrentLocation = savedPos;
-                    InfoClasses.myInfo.Address = SaveData.ReadMySavedAddy();
+                    InfoClasses.MyInfo.savedLocation = savedPos;
+                    InfoClasses.MyInfo.CurrentLocation = savedPos;
+                    InfoClasses.MyInfo.Address = SaveData.ReadMySavedAddy();
 
-                    Log.i("tag", InfoClasses.myInfo.Address);
+                    Log.i("tag", InfoClasses.MyInfo.Address);
 
                 }
             }
@@ -245,11 +246,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ArrayList<String> schools = Objects.requireNonNull(SaveData.ReadMySavedRoutes())[1];
 
                 if (!routes.contains("null") && !schools.contains("null")) {
-                    InfoClasses.myInfo.BusRoutes.clear();
-                    InfoClasses.myInfo.ZonedSchools.clear();
+                    InfoClasses.MyInfo.BusRoutes.clear();
+                    InfoClasses.MyInfo.ZonedSchools.clear();
 
-                    InfoClasses.myInfo.BusRoutes.addAll(routes);
-                    InfoClasses.myInfo.ZonedSchools.addAll(schools);
+                    InfoClasses.MyInfo.BusRoutes.addAll(routes);
+                    InfoClasses.MyInfo.ZonedSchools.addAll(schools);
 
                     Internet.joinRoute_AsRider();
                 }
@@ -296,8 +297,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onLocationChanged(Location location) {
 
         if (InfoClasses.Mode.RIDER()) {
-            if (InfoClasses.myInfo.savedLocation == null) {
-                InfoClasses.myInfo.CurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            if (InfoClasses.MyInfo.savedLocation == null) {
+                InfoClasses.MyInfo.CurrentLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
             }
         }
@@ -355,8 +356,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //Creates a public instance of the Google map
         mMap = googleMap;
+        InfoClasses.BusInfo.marker = mMap.addMarker(new MarkerOptions()
+            .position(new LatLng(0,0))
+            .visible(false));
+
+        InfoClasses.MyInfo.marker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(0,0))
+                .visible(false));
 
         mMap.isTrafficEnabled();
+        mMap.
         //Sets various UI options of the Google map
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
@@ -412,27 +421,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (InfoClasses.Mode.RIDER()) {
 
-            if (InfoClasses.myInfo.savedLocation == null) {
+            if (InfoClasses.MyInfo.savedLocation == null) {
                 mMap.setMyLocationEnabled(true);
             }
-
 
             MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
+                    Log.i("tag", marker.getTag().toString());
+
                     if (InfoClasses.Status.Map()) {
 
-                        if (marker.getTag() == InfoClasses.myInfo.marker.getTag()) {
+                        if (marker.getTag() == InfoClasses.MyInfo.marker.getTag()) {
 
-                            if (InfoClasses.myInfo.savedLocation == null) {
+                            if (InfoClasses.MyInfo.savedLocation == null) {
 
-                                InfoClasses.myInfo.CurrentLocation = InfoClasses.myInfo.marker.getPosition();
-                                InfoClasses.myInfo.savedLocation = InfoClasses.myInfo.marker.getPosition();
+                                InfoClasses.MyInfo.CurrentLocation = InfoClasses.MyInfo.marker.getPosition();
+                                InfoClasses.MyInfo.savedLocation = InfoClasses.MyInfo.marker.getPosition();
 
-                                SaveData.SaveMyHomePos(InfoClasses.myInfo.marker.getPosition());
+                                SaveData.SaveMyHomePos(InfoClasses.MyInfo.marker.getPosition());
 
                                 Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
-                                RGC.execute(InfoClasses.myInfo.CurrentLocation.latitude, InfoClasses.myInfo.CurrentLocation.longitude);
+                                RGC.execute(InfoClasses.MyInfo.CurrentLocation.latitude, InfoClasses.MyInfo.CurrentLocation.longitude);
 
                                 Toast.makeText(getBaseContext(), "You just set your default address to this position", Toast.LENGTH_LONG).show();
 
@@ -447,16 +457,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 }
                                 mMap.setMyLocationEnabled(false);
 
-                                InfoClasses.myInfo.marker.setTitle("Loading...");
-                                InfoClasses.myInfo.marker.setSnippet("This is your saved address");
+                                InfoClasses.MyInfo.marker.setTitle("Loading...");
+                                InfoClasses.MyInfo.marker.setSnippet("This is your saved address");
 
                                 new Timer().schedule(new TimerTask() {
                                     @Override
                                     public void run() {
                                         runOnUiThread(new Runnable() {
                                             public void run() {
-                                                InfoClasses.myInfo.marker.setTitle(InfoClasses.myInfo.Address);
-                                                InfoClasses.myInfo.marker.showInfoWindow();
+                                                InfoClasses.MyInfo.marker.setTitle(InfoClasses.MyInfo.Address);
+                                                InfoClasses.MyInfo.marker.showInfoWindow();
                                             }
                                         });
                                     }
@@ -468,7 +478,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 v.vibrate(100);
                             }
                             markerSelected = false;
-                        } else {
+                        } else if(marker.getTag() == InfoClasses.BusInfo.marker.getTag()) {
+
+                            FragmentTransaction trans = fragmentManager.beginTransaction();
+                            trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+                            trans.replace(R.id.nav_host_fragment, new BusControlFragment()).commit();
+
+                        }else {
                             markerSelected = true;
                         }
                         return false;
@@ -477,9 +493,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return false;
                 }
             });
-            new InfoClasses.Markers(this);
-            MapFragment.RecreateMapObjects();
+
         }
+
+        new InfoClasses.Markers(this);
+        MapFragment.RecreateMapObjects();
 
         StartRefresh();
 
@@ -515,150 +533,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 runOnUiThread(new Runnable() {
                     public void run() {
-
-                        if (InfoClasses.Mode.DRIVER()) {
-                            if (InfoClasses.DriverBus.AssignedBusRoutes != null) {
-
-                                boolean pass = false;
-
-                                if (routes != InfoClasses.DriverBus.AssignedBusRoutes) {
-                                    routes = InfoClasses.DriverBus.AssignedBusRoutes;
-                                    pass = true;
-
-                                } else {
-
-                                    for (int x = 0; x < routes.size(); x++) {
-
-                                        if (!routes.get(x).equals(InfoClasses.DriverBus.AssignedBusRoutes.get(x))) {
-                                            pass = true;
-
-                                        }
-                                    }
-                                }
-
-                                if (pass) {
-
-                                    //The Routes Have updated!!!
-                                }
-                            }
-                            if (InfoClasses.DriverBus.BusLocation != null && MapFragment.coordAuthenticatior(InfoClasses.DriverBus.BusLocation)) {
-                                MapFragment.RecreateMapObjects();
-
-                                CameraPosition cameraPosition = new CameraPosition.Builder()
-                                        .target(InfoClasses.DriverBus.BusLocation)
-                                        .zoom(17) // Gets the correct zoom factor from the distance vairabe
-                                        .bearing(90)                // Sets the orientation of the camera to east
-                                        .tilt(65)                   // Sets the tilt of the camera to 65 degrees
-                                        .build();                   // Creates a CameraPosition from the builder
-
-                                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                                InfoClasses.DriverBus.marker.setPosition(InfoClasses.DriverBus.BusLocation);
-                                InfoClasses.DriverBus.marker.setVisible(true);
-                                InfoClasses.DriverBus.marker.showInfoWindow();
-
-
-                            }
-                        } else if (InfoClasses.Mode.RIDER()) {
-
-                            if (InfoClasses.myInfo.savedLocation == null) {
-                                if (MapFragment.coordAuthenticatior(InfoClasses.myInfo.CurrentLocation)) {
-                                    CameraPosition cameraPosition = new CameraPosition.Builder()
-                                            .target(InfoClasses.myInfo.CurrentLocation)
-                                            .zoom(17) // Gets the correct zoom factor from the distance vairabe
-                                            .bearing(90)                // Sets the orientation of the camera to east
-                                            .tilt(65)                   // Sets the tilt of the camera to 65 degrees
-                                            .build();                   // Creates a CameraPosition from the builder
-
-                                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                                    InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.CurrentLocation);
-                                    InfoClasses.myInfo.marker.setVisible(true);
-                                    InfoClasses.myInfo.marker.showInfoWindow();
-                                }
-
-                            } else {
-
-                                if (UpdatesAvailable) {
-                                    if (InfoClasses.Status.Map()) {
-
-                                        UpdatesAvailable = false;
-                                    }
-                                    InfoClasses.myInfo.updateBusPositions();
-
-                                    ArrayList<LatLng> positions = new ArrayList<>();
-                                    for (InfoClasses.Buses bus : InfoClasses.myInfo.myBuses.values()) {
-
-                                        positions.add(bus.BusLocation);
-                                    }
-
-                                    double longestLength = 200;
-
-                                    for (LatLng p : positions) {
-
-                                        double i = distanceBetweenLocations(InfoClasses.myInfo.CurrentLocation, p);
-
-                                        if (i > longestLength) {
-                                            longestLength = i;
-                                        }
-                                    }
-
-                                    if (!markerSelected) {
-                                        CameraPosition cameraPosition = new CameraPosition.Builder()
-                                                .target(InfoClasses.myInfo.savedLocation)
-                                                .zoom((float) -(Math.log(longestLength * 19 / 591657550.5) / Math.log(2))) // Gets the correct zoom factor from the distance vairabe
-                                                .bearing(90)                // Sets the orientation of the camera to east
-                                                .build();                   // Creates a CameraPosition from the builder
-                                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-                                    }
-                                    InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.savedLocation);
-                                    InfoClasses.myInfo.marker.setVisible(true);
-                                }
-                            }
-                        } else if (InfoClasses.Mode.ADMIN()) {
-
-                            if (UpdatesAvailable) {
-                                if (InfoClasses.Status.Map()) {
-
-                                    UpdatesAvailable = false;
-                                }
-                                InfoClasses.myInfo.updateBusPositions();
-
-                                ArrayList<LatLng> positions = new ArrayList<>();
-                                for (InfoClasses.Buses bus : InfoClasses.myInfo.myBuses.values()) {
-
-                                    positions.add(bus.BusLocation);
-                                }
-
-                                double longestLength = 200;
-
-                                for (LatLng p : positions) {
-
-                                    double i = distanceBetweenLocations(InfoClasses.myInfo.CurrentLocation, p);
-
-                                    if (i > longestLength) {
-                                        longestLength = i;
-                                    }
-                                }
-
-                                if (!markerSelected) {
-                                    CameraPosition cameraPosition = new CameraPosition.Builder()
-                                            .target(InfoClasses.myInfo.savedLocation)
-                                            .zoom((float) -(Math.log(longestLength * 19 / 591657550.5) / Math.log(2))) // Gets the correct zoom factor from the distance vairabe
-                                            .bearing(90)                // Sets the orientation of the camera to east
-                                            .build();                   // Creates a CameraPosition from the builder
-                                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-                                }
-                                InfoClasses.myInfo.marker.setPosition(InfoClasses.myInfo.savedLocation);
-                                InfoClasses.myInfo.marker.setVisible(true);
-                            }
-                        }
+                        updates(false);
                     }
-
                 });
             }
         };
-        timer.schedule(myTask, 100, 250);
+        timer.schedule(myTask, 100, 333);
 
     }
 
@@ -677,7 +557,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return bitmap;
     }
 
-    private double distanceBetweenLocations(LatLng x, LatLng y) {
+    private static double distanceBetweenLocations(LatLng x, LatLng y) {
 
         double q = x.latitude - y.latitude;
         double p = x.longitude - y.longitude;
@@ -692,16 +572,165 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     static void ChangeToMapView() {
-        FragmentTransaction trans = fragmentManager.beginTransaction();
-        trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-        trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
-        MainActivity.UpdatesAvailable = true;
-
+        if(!InfoClasses.Status.Map()) {
+            FragmentTransaction trans = fragmentManager.beginTransaction();
+            trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+            trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+            MainActivity.UpdatesAvailable = true;
+        }
     }
 
     @Override
     protected void onDestroy() {
-        InfoClasses.DriverBus.disconnectFromBus(this);
+        InfoClasses.BusInfo.disconnectFromBus(this);
         super.onDestroy();
     }
+
+    public static void updates(boolean bypass){
+
+        if (InfoClasses.Mode.DRIVER()) {
+            if (InfoClasses.BusInfo.AssignedBusRoutes != null) {
+
+                boolean pass = false;
+
+                if (routes != InfoClasses.BusInfo.AssignedBusRoutes) {
+                    routes = InfoClasses.BusInfo.AssignedBusRoutes;
+                    pass = true;
+
+                } else {
+
+                    for (int x = 0; x < routes.size(); x++) {
+
+                        if (!routes.get(x).equals(InfoClasses.BusInfo.AssignedBusRoutes.get(x))) {
+                            pass = true;
+
+                        }
+                    }
+                }
+
+                if (pass) {
+
+                    //The Routes Have updated!!!
+                }
+            }
+            if (InfoClasses.BusInfo.BusLocation != null && (MapFragment.coordAuthenticatior(InfoClasses.BusInfo.BusLocation) || bypass)) {
+                if (InfoClasses.Status.Map()) {
+
+                    UpdatesAvailable = false;
+                }
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(InfoClasses.BusInfo.BusLocation)
+                        .zoom(17) // Gets the correct zoom factor from the distance vairabe
+                        .bearing(90)                // Sets the orientation of the camera to east
+                        .tilt(65)                   // Sets the tilt of the camera to 65 degrees
+                        .build();                   // Creates a CameraPosition from the builder
+
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+                    @Override
+                    public void onCameraIdle() {
+                        MapFragment.updatePosition(InfoClasses.BusInfo.marker, InfoClasses.BusInfo.BusLocation);
+                        InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
+                        InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
+                        InfoClasses.BusInfo.marker.setIcon(InfoClasses.Markers.BusBitmap);
+                        InfoClasses.BusInfo.marker.showInfoWindow();
+                        InfoClasses.BusInfo.marker.setVisible(true);
+                        InfoClasses.BusInfo.marker.setTag("myBus");
+                    }
+                });
+
+
+
+            }
+        } else if (InfoClasses.Mode.RIDER()) {
+
+            if (InfoClasses.MyInfo.savedLocation == null || bypass) {
+                if (MapFragment.coordAuthenticatior(InfoClasses.MyInfo.CurrentLocation)) {
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(InfoClasses.MyInfo.CurrentLocation)
+                            .zoom(17) // Gets the correct zoom factor from the distance vairabe
+                            .bearing(90)                // Sets the orientation of the camera to east
+                            .tilt(65)                   // Sets the tilt of the camera to 65 degrees
+                            .build();                   // Creates a CameraPosition from the builder
+
+                    InfoClasses.MyInfo.marker.setPosition(InfoClasses.MyInfo.CurrentLocation);
+                    InfoClasses.MyInfo.marker.setVisible(true);
+                    InfoClasses.MyInfo.marker.showInfoWindow();
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                }
+
+            } else {
+
+                if (UpdatesAvailable || bypass) {
+                    if (InfoClasses.Status.Map()) {
+
+                        UpdatesAvailable = false;
+                    }
+                    InfoClasses.MyInfo.updateBusPositions();
+
+                    ArrayList<LatLng> positions = new ArrayList<>();
+                    for (InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()) {
+
+                        positions.add(bus.BusLocation);
+                    }
+
+                    double longestLength = 200;
+
+                    for (LatLng p : positions) {
+
+                        double i = distanceBetweenLocations(InfoClasses.MyInfo.CurrentLocation, p);
+
+                        if (i > longestLength) {
+                            longestLength = i;
+                        }
+                    }
+
+                    if (!markerSelected) {
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(InfoClasses.MyInfo.savedLocation)
+                                .zoom((float) -(Math.log(longestLength * 19 / 591657550.5) / Math.log(2))) // Gets the correct zoom factor from the distance vairabe
+                                .bearing(90)                // Sets the orientation of the camera to east
+                                .build();                   // Creates a CameraPosition from the builder
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                    }
+                    InfoClasses.MyInfo.marker.setPosition(InfoClasses.MyInfo.savedLocation);
+                    InfoClasses.MyInfo.marker.setVisible(true);
+                }
+            }
+        } else if (InfoClasses.Mode.ADMIN()) {
+
+            if (UpdatesAvailable || bypass) {
+                if (InfoClasses.Status.Map()) {
+
+                    UpdatesAvailable = false;
+                }
+                InfoClasses.AdminInfo.updateBusPositions();
+
+//                double longestLength = 200;
+//
+//                for (LatLng p : positions) {
+//
+//                    double i = distanceBetweenLocations(InfoClasses.MyInfo.CurrentLocation, p);
+//
+//                    if (i > longestLength) {
+//                        longestLength = i;
+//                    }
+//                }
+
+                if (!markerSelected) {
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(InfoClasses.countyCenters.get(InfoClasses.county))
+                            .zoom(10.3f) // Gets the correct zoom factor from the distance vairabe
+                            .bearing(0)                // Sets the orientation of the camera to east
+                            .build();                   // Creates a CameraPosition from the builder
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                }
+            }
+        }
+    }
+
 }

@@ -3,7 +3,6 @@ package com.gingergear.BusStopv3.ui.RiderBus;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +21,7 @@ import com.gingergear.BusStopv3.Internet;
 import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
 import com.gingergear.BusStopv3.SaveData;
-import com.gingergear.BusStopv3.ui.Map.MapFragment;
 
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -58,6 +54,7 @@ public class RiderFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Rider;
+        MainActivity.UpdatesAvailable = true;
         InfoClasses.Mode.ChangeToRiderMode(getContext());
 
         homeViewModel = ViewModelProviders.of(this).get(RiderModel.class);
@@ -84,11 +81,11 @@ public class RiderFragment extends Fragment {
         route1_check = root.findViewById(R.id.JoinedRoute3_check);
         checkBoxes = new CheckBox[]{route1_check, route2_check, route3_check};
 
-        if(InfoClasses.myInfo.savedLocation != null) {
-            if (InfoClasses.myInfo.BusRoutes != null) {
+        if(InfoClasses.MyInfo.savedLocation != null) {
+            if (InfoClasses.MyInfo.BusRoutes != null) {
 
                 int index = 0;
-                for (String routes : InfoClasses.myInfo.BusRoutes) {
+                for (String routes : InfoClasses.MyInfo.BusRoutes) {
 
                     if (routes != "null") {
                         layouts[index].setVisibility(View.VISIBLE);
@@ -108,7 +105,7 @@ public class RiderFragment extends Fragment {
                 public void onClick(View v) {
 
                     int index = 0;
-                    for (String routes : InfoClasses.myInfo.BusRoutes) {
+                    for (String routes : InfoClasses.MyInfo.BusRoutes) {
 
                         if (routes != "null") {
                             layouts[index].setVisibility(View.GONE);
@@ -119,23 +116,23 @@ public class RiderFragment extends Fragment {
 
                     }
 
-                    InfoClasses.myInfo.ZonedSchools.clear();
-                    InfoClasses.myInfo.ZonedSchools.add("null");
-                    InfoClasses.myInfo.ZonedSchools.add("null");
-                    InfoClasses.myInfo.ZonedSchools.add("null");
+                    InfoClasses.MyInfo.ZonedSchools.clear();
+                    InfoClasses.MyInfo.ZonedSchools.add("null");
+                    InfoClasses.MyInfo.ZonedSchools.add("null");
+                    InfoClasses.MyInfo.ZonedSchools.add("null");
 
-                    InfoClasses.myInfo.BusRoutes.clear();
-                    InfoClasses.myInfo.BusRoutes.add("null");
-                    InfoClasses.myInfo.BusRoutes.add("null");
-                    InfoClasses.myInfo.BusRoutes.add("null");
+                    InfoClasses.MyInfo.BusRoutes.clear();
+                    InfoClasses.MyInfo.BusRoutes.add("null");
+                    InfoClasses.MyInfo.BusRoutes.add("null");
+                    InfoClasses.MyInfo.BusRoutes.add("null");
                     SaveData.SaveBusRoutes();
 
-                    InfoClasses.myInfo.myBuses.clear();
+                    InfoClasses.MyInfo.myBuses.clear();
                     MainActivity.mMap.clear();
                     MainActivity.UpdatesAvailable = true;
 
                     Internet.GetZonedSchools RGC = new Internet.GetZonedSchools(getContext());
-                    RGC.execute(InfoClasses.myInfo.Address, "true");
+                    RGC.execute(InfoClasses.MyInfo.Address, "true");
 
                     newBusButton.setText("Loading...");
 
@@ -147,14 +144,14 @@ public class RiderFragment extends Fragment {
 
                                     newBusButton.setText("Add new buses");
 
-                                    if (!InfoClasses.myInfo.ZonedSchools.contains("null") && !InfoClasses.myInfo.BusRoutes.contains("null")) {
+                                    if (!InfoClasses.MyInfo.ZonedSchools.contains("null") && !InfoClasses.MyInfo.BusRoutes.contains("null")) {
                                         MainActivity.UpdatesAvailable = true;
 
                                         Toast.makeText(getContext(), "You buses were added successfully", Toast.LENGTH_SHORT).show();
                                         Internet.joinRoute_AsRider();
 
                                         int index = 0;
-                                        for (String routes : InfoClasses.myInfo.BusRoutes) {
+                                        for (String routes : InfoClasses.MyInfo.BusRoutes) {
 
                                             if (routes != "null") {
                                                 layouts[index].setVisibility(View.VISIBLE);
@@ -170,15 +167,15 @@ public class RiderFragment extends Fragment {
 
                                     } else {
 
-                                        InfoClasses.myInfo.ZonedSchools.clear();
-                                        InfoClasses.myInfo.ZonedSchools.add("null");
-                                        InfoClasses.myInfo.ZonedSchools.add("null");
-                                        InfoClasses.myInfo.ZonedSchools.add("null");
+                                        InfoClasses.MyInfo.ZonedSchools.clear();
+                                        InfoClasses.MyInfo.ZonedSchools.add("null");
+                                        InfoClasses.MyInfo.ZonedSchools.add("null");
+                                        InfoClasses.MyInfo.ZonedSchools.add("null");
 
-                                        InfoClasses.myInfo.BusRoutes.clear();
-                                        InfoClasses.myInfo.BusRoutes.add("null");
-                                        InfoClasses.myInfo.BusRoutes.add("null");
-                                        InfoClasses.myInfo.BusRoutes.add("null");
+                                        InfoClasses.MyInfo.BusRoutes.clear();
+                                        InfoClasses.MyInfo.BusRoutes.add("null");
+                                        InfoClasses.MyInfo.BusRoutes.add("null");
+                                        InfoClasses.MyInfo.BusRoutes.add("null");
 
                                         Toast.makeText(getContext(), "You buses were NOT added successfully", Toast.LENGTH_LONG).show();
                                         Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
