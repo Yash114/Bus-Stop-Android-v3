@@ -162,6 +162,51 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                     }
                 }
             }
+        } else {
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    requireActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (InfoClasses.BusInfo.AssignedBusRoutes != null) {
+
+                                if (InfoClasses.BusInfo.AssignedBusRoutes.size() != 0) {
+
+                                    boolean alreadyDidOne = false;
+
+                                    for (int x = 0; x < InfoClasses.BusInfo.AssignedBusRoutes.size(); x++) {
+
+                                        Log.e("tag", InfoClasses.BusInfo.AssignedBusRoutes.get(x));
+
+                                        layouts.get(x).setVisibility(View.VISIBLE);
+                                        buttons.get(x).setText(InfoClasses.BusInfo.AssignedBusRoutes.get(x));
+
+                                        boolean proceed = false;
+                                        if (InfoClasses.BusInfo.AssignedBusRoutes.size() != 0) {
+                                            for (String completedRoutes : InfoClasses.BusInfo.CompletedBusRoutes) {
+                                                if (completedRoutes.equals(InfoClasses.BusInfo.AssignedBusRoutes.get(x))) {
+                                                    alreadyDidOne = true;
+                                                    proceed = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (proceed) {
+                                                checkBoxes.get(x).setChecked(true);
+                                            }
+                                        }
+                                    }
+
+                                    if (alreadyDidOne) {
+                                        ResetRouteButton.setVisibility(View.VISIBLE);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 1000);
         }
 
         if(InfoClasses.BusInfo.CurrentRoute != null){

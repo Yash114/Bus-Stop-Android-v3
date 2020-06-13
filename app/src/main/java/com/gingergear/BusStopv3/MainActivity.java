@@ -100,6 +100,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         Internet.CreateWebSocketConnection();
 
+        InfoClasses.commitCounty("Henry");
+
+
         menuInflater = getMenuInflater();
 
         Instantiate_Save_Methods();
@@ -205,10 +208,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (InfoClasses.Mode.ADMIN()) {
-
-            Internet.join_AsAdmin();
-            Internet.retrieveAllLocations();
-            InfoClasses.commitCounty("Henry");
+//
+//            Internet.join_AsAdmin();
+//            Internet.retrieveAllLocations();
+//            Internet.retrieveAllRoutes();
         }
 
         if (InfoClasses.Mode.DRIVER()) {
@@ -219,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 InfoClasses.BusInfo.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
             }
 
-            InfoClasses.commitCounty("Henry");
+            Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
         }
 
         if (InfoClasses.Mode.RIDER()) {
@@ -364,8 +367,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(new LatLng(0,0))
                 .visible(false));
 
+        if (InfoClasses.Mode.ADMIN()) {
+
+            Internet.retrieveAllLocations();
+            Internet.retrieveAllRoutes();
+        }
+
         mMap.isTrafficEnabled();
-        mMap.
         //Sets various UI options of the Google map
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
@@ -376,6 +384,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.getUiSettings().setTiltGesturesEnabled(true);
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        if(InfoClasses.Mode.ADMIN()){
+            mMap.getUiSettings().setScrollGesturesEnabled(true);
+            mMap.getUiSettings().setZoomGesturesEnabled(true);
+        }
 
         try {
             //If the map is successfully loaded set the style to a defined style
@@ -496,9 +509,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-        new InfoClasses.Markers(this);
         MapFragment.RecreateMapObjects();
-
+        new InfoClasses.Markers(getApplicationContext());
+        updates(true);
         StartRefresh();
 
     }
@@ -577,6 +590,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
             trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
             MainActivity.UpdatesAvailable = true;
+            updates(true);
         }
     }
 
@@ -703,24 +717,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (InfoClasses.Mode.ADMIN()) {
 
             if (UpdatesAvailable || bypass) {
-                if (InfoClasses.Status.Map()) {
 
-                    UpdatesAvailable = false;
-                }
                 InfoClasses.AdminInfo.updateBusPositions();
 
-//                double longestLength = 200;
-//
-//                for (LatLng p : positions) {
-//
-//                    double i = distanceBetweenLocations(InfoClasses.MyInfo.CurrentLocation, p);
-//
-//                    if (i > longestLength) {
-//                        longestLength = i;
-//                    }
-//                }
+                mMap.setOnMapLoadedCallback(new GoogleMap.OnMapLoadedCallback() {
+                    @Override
+                    public void onMapLoaded() {
+                        UpdatesAvailable = false;
 
-                if (!markerSelected) {
+                    }
+                });
+
+
+                if (bypass) {
                     CameraPosition cameraPosition = new CameraPosition.Builder()
                             .target(InfoClasses.countyCenters.get(InfoClasses.county))
                             .zoom(10.3f) // Gets the correct zoom factor from the distance vairabe

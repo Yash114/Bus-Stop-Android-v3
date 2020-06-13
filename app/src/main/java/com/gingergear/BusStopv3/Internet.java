@@ -27,6 +27,7 @@ import java.util.Hashtable;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.Route;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
@@ -486,10 +487,34 @@ public class Internet {
 
             String county = "Henry";
 
-            String dataOut = "{\"action\" : \"joinBus\" , \"data\" : {\"county\" : \"" +
+            String dataOut = "{\"action\" : \"joinAdmin\" , \"data\" : {\"county\" : \"" +
+                    county + "\"}}";
+
+            Log.e("websocket", "Joined Admin");
+
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    public static void retrieveAllRoutes() {
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"getAllRoutes\" , \"data\" : {\"county\" : \"" +
                     county + "\"}}";
 
             ws.send(dataOut);
+            Log.e("websocket", "Recieving all county routes");
+
+
         } else {
 
             Log.e("websocket", "ERROR");
@@ -503,13 +528,39 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"getBusLocations\", \"data\" : {\"county\" : \"" +
                     county + "\"}}";
 
             ws.send(dataOut);
-            Log.e("websocket", "Connected yuor bus");
+            Log.e("websocket", "Recieving all county locations");
+
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+
+        }
+    }
+
+    public static void addBus(String busNumber, String driverName, ArrayList<String> routes){
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"busEditor\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"busNumber\" : \"" +
+                    busNumber + "\", \"route_one\" : \"" +
+                    routes.get(0) + "\", \"route_two\" : \"" +
+                    routes.get(1) + "\", \"route_three\" : \"" +
+                    routes.get(2) + "\", \"name\" : \"" +
+                    driverName + "\"}}";
+
+            ws.send(dataOut);
+            Log.e("websocket", "Created Bus " + busNumber);
 
         } else {
 
@@ -524,7 +575,7 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"routeID\" : \"" +
@@ -548,7 +599,7 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
@@ -572,7 +623,7 @@ public class Internet {
         if (SocketConnected) {
 
             if (InfoClasses.MyInfo.BusRoutes.size() == 3) {
-                String county = "Henry";
+                String county = InfoClasses.county;
                 ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.MyInfo.BusRoutes;
 
                 String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
@@ -597,7 +648,7 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
             ArrayList<String> busRouteID = (ArrayList<String>) InfoClasses.MyInfo.BusRoutes;
 
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
@@ -621,7 +672,7 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"joinBus\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
@@ -641,7 +692,7 @@ public class Internet {
 
         if (SocketConnected && location != null) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"disconnectBus\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
@@ -683,29 +734,50 @@ public class Internet {
                     final String RouteID = object.getString("routeID");
                     final String BusNumber = object.getString("busNumber");
 
+                    if (InfoClasses.Mode.RIDER()) {
+                        if (InfoClasses.MyInfo.myBuses.containsKey(RouteID)) {
 
-                    if (InfoClasses.MyInfo.myBuses.containsKey(RouteID)) {
+                            InfoClasses.Buses thisBus = InfoClasses.MyInfo.myBuses.get(RouteID);
+                            thisBus.BusLocation = BusLocation;
 
-                        InfoClasses.Buses thisBus = InfoClasses.MyInfo.myBuses.get(RouteID);
-                        thisBus.BusLocation = BusLocation;
+                            if (!thisBus.BusNumber.equals(BusNumber)) {
 
-                        if (!thisBus.BusNumber.equals(BusNumber)) {
+                                //TODO show a notification or sum
+                                thisBus.BusNumber = BusNumber;
+                            }
 
-                            //TODO show a notification or sum
-                            thisBus.BusNumber = BusNumber;
+                            Log.e("tag", "Updated bus info");
+
+                        } else {
+
+                            InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation, InfoClasses.MyInfo.getSchoolFromRoute(RouteID));
+                            InfoClasses.MyInfo.myBuses.put(RouteID, newBus);
+
+                            Log.e("tag", "Created a new bus instance");
                         }
 
-                        Log.e("tag", "Updated bus info");
-
+                        MainActivity.UpdatesAvailable = true;
                     } else {
 
-                        InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation, InfoClasses.MyInfo.getSchoolFromRoute(RouteID));
-                        InfoClasses.MyInfo.myBuses.put(RouteID, newBus);
+                        if (InfoClasses.AdminInfo.CountyBuses.containsKey(BusNumber)) {
 
-                        Log.e("tag", "Created a new bus instance");
+                            InfoClasses.Buses thisBus = InfoClasses.AdminInfo.CountyBuses.get(BusNumber);
+                            thisBus.BusLocation = BusLocation;
+                            thisBus.Route = RouteID;
+
+                            if (!thisBus.BusNumber.equals(BusNumber)) {
+
+                                //TODO show a notification or sum
+                                thisBus.BusNumber = BusNumber;
+                            }
+
+                            Log.e("tag", "Updated bus info");
+                            thisBus.Active = true;
+
+                        }
+
+                        MainActivity.UpdatesAvailable = true;
                     }
-
-                    MainActivity.UpdatesAvailable = true;
                 }
 
                 if (text.contains("busData")) {
@@ -745,15 +817,27 @@ public class Internet {
                         LatLng BusLocation = new LatLng(bb.getDouble("Lat"), bb.getDouble("Lng"));
                         String BusNumber = bb.getString("BusNumber");
 
-                        Log.e("websocket", BusNumber);
+                        if (!InfoClasses.AdminInfo.CountyBuses.containsKey(BusNumber)) {
 
-                        InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation);
-                        InfoClasses.AdminInfo.CountyBuses.put(BusNumber, newBus);
+                            InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation);
+                            InfoClasses.AdminInfo.CountyBuses.put(BusNumber, newBus);
+                            InfoClasses.AdminInfo.AvailableBusNumbers.add(BusNumber);
 
-                        Log.e("tag", "Created a new bus instance");
+                            Log.e("websockets", "Created a new bus instance");
+                            MainActivity.UpdatesAvailable = true;
+
+                        }
                     }
+                }
 
-                    MainActivity.UpdatesAvailable = true;
+                if (text.contains("AllRoutes")) {
+                    JSONObject object = jObject.getJSONObject("AllRoutes");
+                    InfoClasses.AdminInfo.AvailableRoutes.clear();
+                    for(int x = 0; x < object.getInt("number"); x++) {
+
+                        String bb = object.getJSONArray("data").getJSONArray(x).getString(1);
+                        InfoClasses.AdminInfo.AvailableRoutes.add(bb);
+                    }
                 }
 
             } catch (JSONException e) {

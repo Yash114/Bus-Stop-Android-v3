@@ -14,7 +14,9 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.os.Vibrator;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.Toast;
 
@@ -28,6 +30,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -41,26 +44,37 @@ import static com.gingergear.BusStopv3.SaveData.ReadMySavedPos;
 public class InfoClasses {
 
     public static String county;
-    public static Hashtable<String,LatLng> countyCenters = new Hashtable<>();
+    public static Hashtable<String, LatLng> countyCenters = new Hashtable<>();
 
-    public static void commitCounty(String County){
+    public static void commitCounty(String County) {
 
         county = County;
-        countyCenters.put("Henry", new LatLng(33.4479112,-84.1479229));
+        countyCenters.put("Henry", new LatLng(33.4479112, -84.1479229));
     }
 
     public static class Markers {
 
         public static BitmapDescriptor MyBitmap;
         public static BitmapDescriptor BusBitmap;
+        public static BitmapDescriptor BusBitmapGREYs;
+        public static BitmapDescriptor BusBitmaps;
 
-        public Markers(Context context){
+
+        public Markers(Context context) {
 
             Bitmap MyBitmapsi = getBitmapFromVectorDrawable(context, R.drawable.kid);
             Bitmap BusBitmapi = getBitmapFromVectorDrawable(context, R.drawable.bus);
+            Bitmap BusGBitmai = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24);
+            Bitmap BusGBitmapi = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24_grey);
+
+
 
             MyBitmap = BitmapDescriptorFactory.fromBitmap(MyBitmapsi);
             BusBitmap = BitmapDescriptorFactory.fromBitmap(BusBitmapi);
+            BusBitmapGREYs = BitmapDescriptorFactory.fromBitmap(BusGBitmapi);
+            BusBitmaps = BitmapDescriptorFactory.fromBitmap(BusGBitmai);
+
+
         }
 
         public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
@@ -81,13 +95,14 @@ public class InfoClasses {
 
     public class Buses {
 
-        public LatLng BusLocation;
+        public LatLng BusLocation = new LatLng(0, 0);
         public String School;
         public String BusNumber;
         public String Route;
+        public Boolean Active;
         public Marker marker;
 
-        public Buses(String busNumber, LatLng busLocation, String school){
+        public Buses(String busNumber, LatLng busLocation, String school) {
 
             BusNumber = busNumber;
             BusLocation = busLocation;
@@ -95,20 +110,31 @@ public class InfoClasses {
 
         }
 
-        public Buses(String busNumber, LatLng busLocation){
+        public Buses(String busNumber, LatLng busLocation) {
 
             BusNumber = busNumber;
             BusLocation = busLocation;
+            Active = false;
         }
 
-        public void createMarker(){
+        public void createMarker() {
 
-            marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                    .icon(Markers.BusBitmap)
-                    .position(BusLocation)
-                    .title(BusNumber)
-                    .snippet("Runnning for " + School)
-                    .visible(true));
+            if(Mode.RIDER()) {
+                marker = MainActivity.mMap.addMarker(new MarkerOptions()
+                        .icon(Markers.BusBitmap)
+                        .position(BusLocation)
+                        .title(BusNumber)
+                        .snippet("Runnning for " + School)
+                        .visible(true));
+            } else {
+
+                marker = MainActivity.mMap.addMarker(new MarkerOptions()
+                        .icon(Markers.BusBitmapGREYs)
+                        .position(BusLocation)
+                        .snippet("Not currently active")
+                        .title(BusNumber)
+                        .visible(true));
+            }
         }
 
         public void updatePosition() {
@@ -116,39 +142,50 @@ public class InfoClasses {
             if (marker == null) {
 
                 createMarker();
-            } else {
-
-                if(!marker.getTitle().equals(BusNumber)){
-
-                    marker.setTitle(BusNumber);
-                }
-
-                final Handler handler = new Handler();
-                final long start = SystemClock.uptimeMillis();
-                final long duration = 1000;
-
-                final BounceInterpolator interpolator = new BounceInterpolator();
-                marker.setVisible(true);
-
-                double Lat = BusLocation.latitude - marker.getPosition().latitude;
-                double Lng = BusLocation.longitude - marker.getPosition().longitude;
-                final LatLng begin = marker.getPosition();
-                final LatLng distanceCoor = new LatLng(Lat, Lng);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        long elapsed = SystemClock.uptimeMillis() - start;
-                        float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
-
-                        marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
-
-                        if (t > 0.0) {
-                            // Post again 16ms later.
-                            handler.postDelayed(this, 16);
-                        }
-                    }
-                });
             }
+
+            if (!marker.getTitle().equals(BusNumber)) {
+
+                marker.setTitle(BusNumber);
+
+            }
+
+            if(Active){
+
+                marker.setIcon(Markers.BusBitmaps);
+                marker.setSnippet("Currently running route " + Route);
+                marker.setFlat(false);
+
+            } else {
+                marker.setIcon(Markers.BusBitmapGREYs);
+                marker.setFlat(true);
+            }
+
+            final Handler handler = new Handler();
+            final long start = SystemClock.uptimeMillis();
+            final long duration = 1000;
+
+            final BounceInterpolator interpolator = new BounceInterpolator();
+            marker.setVisible(true);
+
+            double Lat = BusLocation.latitude - marker.getPosition().latitude;
+            double Lng = BusLocation.longitude - marker.getPosition().longitude;
+            final LatLng begin = marker.getPosition();
+            final LatLng distanceCoor = new LatLng(Lat, Lng);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    long elapsed = SystemClock.uptimeMillis() - start;
+                    float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+
+                    marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
+
+                    if (t > 0.0) {
+                        // Post again 16ms later.
+                        handler.postDelayed(this, 16);
+                    }
+                }
+            });
         }
 
     }
@@ -157,12 +194,16 @@ public class InfoClasses {
 
         public static String user;
         public static Hashtable<String, Buses> CountyBuses = new Hashtable<>();
+        public static ArrayList<String> AvailableBusNumbers = new ArrayList<>();
+        public static ArrayList<String> AvailableRoutes = new ArrayList<>();
 
-        public static void updateBusPositions(){
+        public static void updateBusPositions() {
 
-            for(Buses bus : CountyBuses.values()){
+            for (Buses bus : CountyBuses.values()) {
 
                 bus.updatePosition();
+                bus.marker.setVisible(true);
+                Log.e("tag", "Update");
             }
         }
 
@@ -171,7 +212,7 @@ public class InfoClasses {
     public static class BusInfo {
 
         public static String BusNumber = "14-71";
-        public static LatLng BusLocation;
+        public static LatLng BusLocation = new LatLng(0, 0);
         public static String BusDriver;
         public static ArrayList<String> AssignedBusRoutes;
         public static ArrayList<String> CompletedBusRoutes = new ArrayList<>();
@@ -212,7 +253,7 @@ public class InfoClasses {
         public static List<String> ZonedSchools = new ArrayList<>();
 
         public static List<String> SchoolURL = new ArrayList<>();
-        public static Hashtable<String,Buses> myBuses = new Hashtable<>();
+        public static Hashtable<String, Buses> myBuses = new Hashtable<>();
 
         public static String Address;
         public static LatLng CurrentLocation;
@@ -220,11 +261,11 @@ public class InfoClasses {
 
         public static Marker marker;
 
-        public static String getSchoolFromRoute(String Route){
+        public static String getSchoolFromRoute(String Route) {
 
             int index = BusRoutes.indexOf(Route);
 
-            if(index != -1){
+            if (index != -1) {
 
                 return ZonedSchools.get(index);
             }
@@ -232,9 +273,9 @@ public class InfoClasses {
             return null;
         }
 
-        public static void updateBusPositions(){
+        public static void updateBusPositions() {
 
-            for(Buses bus : myBuses.values()){
+            for (Buses bus : myBuses.values()) {
 
                 bus.updatePosition();
             }
@@ -396,19 +437,23 @@ public class InfoClasses {
         static public int Admin = 4;
         static public int ActiveFragment = -1;
 
-        public static boolean Map(){
+        public static boolean Map() {
             return ActiveFragment == Map;
         }
-        public static boolean Setting(){
+
+        public static boolean Setting() {
             return ActiveFragment == Setting;
         }
-        public static boolean Rider(){
+
+        public static boolean Rider() {
             return ActiveFragment == Rider;
         }
-        public static boolean Driver(){
+
+        public static boolean Driver() {
             return ActiveFragment == Driver;
         }
-        public static boolean Admin(){
+
+        public static boolean Admin() {
             return ActiveFragment == Admin;
         }
     }
@@ -440,6 +485,9 @@ public class InfoClasses {
 
             if (!DRIVER()) {
 
+                Internet.CloseWebSocket();
+                Internet.CreateWebSocketConnection();
+
                 Rider_Driver = DRIVER;
                 MainActivity.ModeJustChanged();
                 Internet.joinRoute_AsBus(BusInfo.BusNumber);
@@ -449,12 +497,17 @@ public class InfoClasses {
                 Toast.makeText(context, "You just entered the secret Bus Driver Mode!", Toast.LENGTH_SHORT).show();
                 BusInfo.marker.setIcon(Markers.BusBitmap);
 
+                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
+                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
             }
         }
 
         public static void ChangeToRiderMode(Context context) {
 
             if (!RIDER()) {
+
+                Internet.CloseWebSocket();
+                Internet.CreateWebSocketConnection();
 
                 MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
@@ -499,18 +552,27 @@ public class InfoClasses {
                 BusInfo.disconnectFromBus(context);
                 Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
 
+                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
+                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
             }
         }
 
         public static void ChangeToAdminMode(Context context) {
 
-            if(!ADMIN()) {
+            if (!ADMIN()) {
+                Internet.CloseWebSocket();
+                Internet.CreateWebSocketConnection();
+
                 Rider_Driver = ADMIN;
                 MainActivity.ModeJustChanged();
                 BusInfo.disconnectFromBus(context);
                 Internet.join_AsAdmin();
                 Internet.retrieveAllLocations();
+                Internet.retrieveAllRoutes();
                 SaveData.SaveAppMode(2);
+
+                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(true);
+                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(true);
 
                 Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
             }
