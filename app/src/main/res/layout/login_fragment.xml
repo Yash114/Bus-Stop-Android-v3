@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOG IN"
+        android:textStyle="bold"
+        android:textSize="48dp"
+        android:textAlignment="center"
+        android:paddingTop="128dp"
+        android:textColor="#FFFF" />
+
+    <TextView
+        android:paddingHorizontal="64dp"
+        android:layout_marginBottom="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="8dp"
+        android:textAlignment="center"
+        android:text="If you don't know the password you probably aren't meant to be here"/>
+
+    <EditText
+        android:id="@+id/username"
+        android:layout_margin="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttonshape"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#555555"
+        android:padding="16dp"
+        android:hint="user name"
+        android:singleLine="true"/>
+
+    <EditText
+        android:id="@+id/password"
+        android:layout_margin="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttonshape"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#555555"
+        android:padding="16dp"
+        android:hint="password"
+        android:inputType="textPassword"
+        android:singleLine="true"/>
+
+    <TextView
+        android:id="@+id/WrongPass"
+        android:layout_marginTop="32dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Wrong Password!"
+        android:textAlignment="center"
+        android:textColor="@color/colorAccent"
+        android:background="@drawable/buttonshape_white"
+        android:layout_marginHorizontal="60dp"
+        android:padding="8dp"
+        android:visibility="invisible"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/buttonshape_white"
+        android:layout_marginTop="32dp"
+        android:layout_marginHorizontal="128dp"
+        android:textColor="@color/colorPrimaryDark"
+        android:textStyle="bold"
+        android:textSize="16dp"
+        android:text="Submit"/>
+
+</LinearLayout>

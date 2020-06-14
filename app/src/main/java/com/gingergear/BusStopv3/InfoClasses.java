@@ -50,6 +50,9 @@ public class InfoClasses {
 
         county = County;
         countyCenters.put("Henry", new LatLng(33.4479112, -84.1479229));
+
+        MainActivity.focus = InfoClasses.countyCenters.get(InfoClasses.county);
+
     }
 
     public static class Markers {
@@ -99,7 +102,7 @@ public class InfoClasses {
         public String School;
         public String BusNumber;
         public String Route;
-        public Boolean Active;
+        public Boolean Active = false;
         public Marker marker;
 
         public Buses(String busNumber, LatLng busLocation, String school) {
@@ -129,9 +132,9 @@ public class InfoClasses {
             } else {
 
                 marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                        .icon(Markers.BusBitmapGREYs)
+                        .icon(Active ? Markers.BusBitmaps : Markers.BusBitmapGREYs)
                         .position(BusLocation)
-                        .snippet("Not currently active")
+                        .snippet(Active ? "Currently running route " + Route : "Not currently active")
                         .title(BusNumber)
                         .visible(true));
             }
@@ -207,6 +210,13 @@ public class InfoClasses {
             }
         }
 
+        public static void recreateMarkers(){
+
+            for (Buses bus : CountyBuses.values()) {
+
+                bus.createMarker();
+            }
+        }
     }
 
     public static class BusInfo {
@@ -485,9 +495,6 @@ public class InfoClasses {
 
             if (!DRIVER()) {
 
-                Internet.CloseWebSocket();
-                Internet.CreateWebSocketConnection();
-
                 Rider_Driver = DRIVER;
                 MainActivity.ModeJustChanged();
                 Internet.joinRoute_AsBus(BusInfo.BusNumber);
@@ -505,9 +512,6 @@ public class InfoClasses {
         public static void ChangeToRiderMode(Context context) {
 
             if (!RIDER()) {
-
-                Internet.CloseWebSocket();
-                Internet.CreateWebSocketConnection();
 
                 MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
@@ -560,8 +564,6 @@ public class InfoClasses {
         public static void ChangeToAdminMode(Context context) {
 
             if (!ADMIN()) {
-                Internet.CloseWebSocket();
-                Internet.CreateWebSocketConnection();
 
                 Rider_Driver = ADMIN;
                 MainActivity.ModeJustChanged();

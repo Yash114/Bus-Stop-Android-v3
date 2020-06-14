@@ -550,6 +550,7 @@ public class Internet {
         if (SocketConnected) {
 
             String county = InfoClasses.county;
+            LatLng center = InfoClasses.countyCenters.get(InfoClasses.county);
 
             String dataOut = "{\"action\" : \"busEditor\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
@@ -557,7 +558,9 @@ public class Internet {
                     routes.get(0) + "\", \"route_two\" : \"" +
                     routes.get(1) + "\", \"route_three\" : \"" +
                     routes.get(2) + "\", \"name\" : \"" +
-                    driverName + "\"}}";
+                    driverName + "\", \"lat\" : \"" +
+                    center.latitude + "\", \"lng\" : \"" +
+                    center.longitude + "\"}}";
 
             ws.send(dataOut);
             Log.e("websocket", "Created Bus " + busNumber);
@@ -756,7 +759,6 @@ public class Internet {
                             Log.e("tag", "Created a new bus instance");
                         }
 
-                        MainActivity.UpdatesAvailable = true;
                     } else {
 
                         if (InfoClasses.AdminInfo.CountyBuses.containsKey(BusNumber)) {
@@ -774,10 +776,15 @@ public class Internet {
                             Log.e("tag", "Updated bus info");
                             thisBus.Active = true;
 
+                            if(MainActivity.focus != InfoClasses.countyCenters.get(InfoClasses.county)) {
+                                MainActivity.focus = thisBus.BusLocation;
+                            }
+
                         }
 
-                        MainActivity.UpdatesAvailable = true;
                     }
+
+                    MainActivity.UpdatesAvailable = true;
                 }
 
                 if (text.contains("busData")) {
@@ -799,6 +806,10 @@ public class Internet {
 
                     if (!object.getString("additional_route").equals("None")) {
                         myRoutes.add(object.getString("additional_route"));
+                    }
+
+                    if (!object.getString("name").equals("None")) {
+                        InfoClasses.BusInfo.BusDriver = object.getString("name");
                     }
 
                     InfoClasses.BusInfo.AssignedBusRoutes = myRoutes;
