@@ -21,7 +21,10 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
+import com.gingergear.BusStopv3.ui.Map.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+
+import java.util.Map;
 
 
 public class Background_Update extends IntentService {
@@ -59,161 +62,107 @@ public class Background_Update extends IntentService {
         int counter = 0;
         LatLng Temp = null;
 
-        int Rider_Driver = InfoClasses.Mode.Rider_Driver;
-        int DRIVER = 1;
-        int RIDER = 0;
+        if (InfoClasses.Mode.DRIVER()) {
 
-        if (InfoClasses.Mode.Rider_Driver == DRIVER) {
-            if (InfoClasses.Status.Status != InfoClasses.Status.PAUSED && InfoClasses.Status.Status != InfoClasses.Status.Disconnected && InfoClasses.Status.Status != InfoClasses.Status.DONE) {
+            InfoClasses.Bluetooth.bluetoothGatt = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, false, new BluetoothGattCallback() {
 
-                InfoClasses.Bluetooth.bluetoothGatt = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, false, new BluetoothGattCallback() {
+                @Override
+                public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
-                    @Override
-                    public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-
-                        super.onConnectionStateChange(gatt, status, newState);
+                    super.onConnectionStateChange(gatt, status, newState);
 
 
-                        Log.e("Bluetooth", InfoClasses.Bluetooth.isConnected ? "Connected" : "Not Connected");
+                    Log.e("Bluetooth", InfoClasses.Bluetooth.isConnected ? "Connected" : "Not Connected");
 
-                        if (InfoClasses.Bluetooth.isConnected) {
+                    if (InfoClasses.Bluetooth.isConnected) {
 
-                            InfoClasses.Bluetooth.bluetoothGatt.discoverServices();
+                        InfoClasses.Bluetooth.bluetoothGatt.discoverServices();
 
-                            return;
+                        return;
 
-                        }
                     }
+                }
 
-                    @Override
-                    public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                        super.onServicesDiscovered(gatt, status);
+                @Override
+                public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                    super.onServicesDiscovered(gatt, status);
 
 
-                        if (status == 0) {
+                    if (status == 0) {
 
-                            Log.e("Bluetooth", "got something");
-                            Log.e("Bluetooth", "onServicesDiscovered received: " + BluetoothGatt.GATT_SUCCESS);
+                        Log.e("Bluetooth", "got something");
+                        Log.e("Bluetooth", "onServicesDiscovered received: " + BluetoothGatt.GATT_SUCCESS);
 
-                            for (BluetoothGattService i : gatt.getServices()) {
+                        for (BluetoothGattService i : gatt.getServices()) {
 
-                                if (i.getUuid().toString().equals("0000ffe0-0000-1000-8000-00805f9b34fb")) {
+                            if (i.getUuid().toString().equals("0000ffe0-0000-1000-8000-00805f9b34fb")) {
 
-                                    for (BluetoothGattCharacteristic j : i.getCharacteristics()) {
-                                        Boolean b = gatt.setCharacteristicNotification(j, true);
-                                        Log.e("Bluetooth", b ? "yes" : "no");
-                                    }
+                                for (BluetoothGattCharacteristic j : i.getCharacteristics()) {
+                                    Boolean b = gatt.setCharacteristicNotification(j, true);
+                                    Log.e("Bluetooth", b ? "yes" : "no");
                                 }
                             }
                         }
                     }
+                }
 
-                    @Override
-                    public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                        super.onCharacteristicChanged(gatt, characteristic);
+                @Override
+                public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+                    super.onCharacteristicChanged(gatt, characteristic);
 
-                        byte[] bytes = characteristic.getValue();
-                        String buffer = "";
-                        for (int u = 0; u < bytes.length; u++) {
+                    byte[] bytes = characteristic.getValue();
+                    String buffer = "";
+                    for (int u = 0; u < bytes.length; u++) {
 
-                            buffer += (char) bytes[u];
-                        }
-
-                        if (buffer.length() >= 10) {
-
-                            LocationString = buffer;
-
-                            Log.i("Bluetooth", "You just recieved: " + buffer);
-                            Log.e("Bluetooth", characteristic.getUuid().toString());
-
-                        }
+                        buffer += (char) bytes[u];
                     }
 
-                });
-            }
+                    if (buffer.length() >= 10) {
+
+                        LocationString = buffer;
+
+                        Log.i("Bluetooth", "You just recieved: " + buffer);
+                        Log.e("Bluetooth", characteristic.getUuid().toString());
+
+                    }
+                }
+
+            });
         }
 
         while (counter <= 20) {
 
-            if (Rider_Driver == DRIVER) {
-                if (InfoClasses.Status.Status != InfoClasses.Status.PAUSED && InfoClasses.Status.Status != InfoClasses.Status.Disconnected && InfoClasses.Status.Status != InfoClasses.Status.DONE) {
+            if (true) {
 
-                    if (InfoClasses.Bluetooth.isConnected) {
+                if (InfoClasses.Bluetooth.isConnected) {
 
-                        if (!LocationString.equals("")) {
+                    if (!LocationString.equals("")) {
 
-                            counter = 0;
+                        counter = 0;
 
-                            try {
-                                LatLng buf = new LatLng(Double.parseDouble(
-                                        LocationString.substring(0, LocationString.indexOf(','))),
-                                        Double.parseDouble(LocationString.substring(LocationString.indexOf(',') + 1)));
+                        try {
+                            LatLng buf = new LatLng(Double.parseDouble(
+                                    LocationString.substring(0, LocationString.indexOf(','))),
+                                    Double.parseDouble(LocationString.substring(LocationString.indexOf(',') + 1)));
 
-                                LocationString = "";
+                            LocationString = "";
 
-                                if (InfoClasses.BusInfo.BusLocation != null && buf != null) {
-                                    if (Math.abs(InfoClasses.BusInfo.BusLocation.latitude - buf.latitude) < 0.2 &&
-                                            Math.abs(InfoClasses.BusInfo.BusLocation.longitude - buf.longitude) < 0.2) {
-
-
-                                        if (Math.abs(InfoClasses.BusInfo.BusLocation.latitude - buf.latitude) > 0.000001 ||
-                                                Math.abs(InfoClasses.BusInfo.BusLocation.longitude - buf.longitude) > 0.000001) {
-                                            if (buf != InfoClasses.BusInfo.BusLocation) {
-
-                                                    InfoClasses.BusInfo.BusLocation = buf;
-
-                                                    Internet.sendLocations(buf, InfoClasses.BusInfo.CurrentRoute, InfoClasses.BusInfo.BusNumber);
+//
+//                            if(MapFragment.coordAuthenticatior(buf)) {
+                                Internet.sendLocations(buf, InfoClasses.BusInfo.CurrentRoute, InfoClasses.BusInfo.BusNumber);
+                                InfoClasses.BusInfo.BusLocation = buf;
+//                            }
 
 
-                                                    if (InfoClasses.Status.Status != InfoClasses.Status.NORMAL)
-                                                        InfoClasses.Status.Status = InfoClasses.Status.NORMAL;
-                                            }
-                                        }
-                                    }
+                        } catch (StringIndexOutOfBoundsException i) {
 
-                                } else {
-
-                                    if (buf != null) {
-                                        if (Temp == null) {
-                                            Temp = buf;
-
-                                        } else {
-
-                                            if (Math.abs(buf.latitude - Temp.latitude) < 0.0001 && Math.abs(buf.longitude - Temp.longitude) < 0.0001) {                                                 InfoClasses.BusInfo.BusLocation = buf;
-
-                                                    Internet.sendLocations(buf, InfoClasses.BusInfo.CurrentRoute, InfoClasses.BusInfo.BusNumber);
-
-                                                    if (InfoClasses.Status.Status != InfoClasses.Status.NORMAL)
-                                                        InfoClasses.Status.Status = InfoClasses.Status.NORMAL;
-
-                                            } else {
-                                                Temp = null;
-                                            }
-                                        }
-
-                                    }
-
-                                }
-                            } catch (StringIndexOutOfBoundsException i) {
-
-                            } catch (NumberFormatException b) {
-
-                            }
-                        } else {
-
-//                            counter += 1;
+                        } catch (NumberFormatException b) {
 
                         }
-                    } else {
-                        stopSelf();
-
                     }
-
-                } else if (InfoClasses.Status.Status == InfoClasses.Status.PAUSED) {
-                    stopSelf();
-
                 } else {
                     stopSelf();
+
                 }
             }
 

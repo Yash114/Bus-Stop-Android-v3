@@ -93,12 +93,12 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
 
         root = inflater.inflate(R.layout.adminsettings_fragment, container, false);
 
-        MainActivity.OpenLOGIN();
-
         busRouteList = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, InfoClasses.AdminInfo.AvailableRoutes);
-        NewBusObjects();
 
         BusSettingsLayout = root.findViewById(R.id.busAdminControl);
+        AddBusLayout = root.findViewById(R.id.AddNewBus);
+
+        NewBusObjects();
 
         searchBar = root.findViewById(R.id.search);
         searchButton = root.findViewById(R.id.searchButton);
@@ -109,7 +109,7 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
             @Override
             public void onClick(View v) {
 
-                hideKeyboard(getActivity());
+                hideKeyboard();
                 searchBar.clearFocus();
 
 
@@ -163,7 +163,7 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
                 if (event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE)) {
-                    hideKeyboard(getActivity());
+                    ;
                     searchBar.clearFocus();
                     searchBar.setText("");
                 }
@@ -217,21 +217,10 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
 
     }
 
-    public static void hideKeyboard(Activity activity) {
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        //Find the currently focused view, so we can grab the correct window token from it.
-        View view = activity.getCurrentFocus();
-        //If no view currently has focus, create a new one, just so we can grab a window token from it
-        if (view == null) {
-            view = new View(activity);
-        }
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
+    private void NewBusObjects() {
 
-    private void NewBusObjects(){
-
-        AddBusLayout = root.findViewById(R.id.AddNewBus);
         AddBusLayout.setVisibility(View.VISIBLE);
+        BusSettingsLayout.setVisibility(View.GONE);
 
         BusNameInput = root.findViewById(R.id.nameInput);
         BusNumberInput = root.findViewById(R.id.numberInput);
@@ -401,13 +390,14 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
         Refresh = root.findViewById(R.id.refresh);
         EditRouteInfo = root.findViewById(R.id.UpdateRoutes);
 
+        AddBusLayout.setVisibility(View.GONE);
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 requireActivity().runOnUiThread(new Runnable() {
                     public void run() {
 
-                        if(InfoClasses.BusInfo.BusDriver != null) {
+                        if (InfoClasses.BusInfo.BusDriver != null) {
                             BusSettingsLayout.setVisibility(View.VISIBLE);
                             ArrayList<String> Routes = InfoClasses.BusInfo.AssignedBusRoutes;
                             final String Name = InfoClasses.BusInfo.BusDriver;
@@ -444,7 +434,7 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
                                     CheckBoxes.get(1).setChecked(true);
 
 
-                                    for(int x  = 0; x < 3; x++) {
+                                    for (int x = 0; x < 3; x++) {
                                         BusRouteEditors.get(x).setText(InfoClasses.BusInfo.AssignedBusRoutes.get(x));
                                         CheckBoxes.get(x + 2).setChecked(true);
 
@@ -490,5 +480,10 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
 
             a.setText("");
         }
+    }
+
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(root.getWindowToken(), 0);
     }
 }

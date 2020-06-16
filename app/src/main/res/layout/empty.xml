@@ -5,21 +5,4 @@
     android:background="@color/colorPrimaryDark"
     android:id="@+id/empty">
 
-    <pl.droidsonroids.gif.GifImageView
-        android:layout_width="128dp"
-        android:layout_height="128dp"
-        android:layout_margin="8dp"
-
-        android:longClickable="false"
-        android:layout_centerInParent="true"
-
-        android:scaleType="fitXY"
-        android:src="@drawable/earth"
-/>
-
-    <ImageButton
-        android:layout_centerInParent="true"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-
 </RelativeLayout>

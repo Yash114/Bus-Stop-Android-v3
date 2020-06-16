@@ -221,6 +221,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
             public void onClick(View v) {
                 if (!InfoClasses.Bluetooth.isConnected) {
                     InfoClasses.BusInfo.connectToBus();
+                    ActionButton.setClickable(false);
                     EndRouteButton.setVisibility(View.INVISIBLE);
                     ActionButton.setText("Loading...");
 
@@ -229,6 +230,8 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                         public void run() {
                             requireActivity().runOnUiThread(new Runnable() {
                                 public void run() {
+                                    ActionButton.setClickable(true);
+
                                     if (InfoClasses.Bluetooth.isConnected) {
                                         ActionButton.setText("Disconnect");
                                         Internet.disconnectYourBus(InfoClasses.BusInfo.BusNumber, InfoClasses.BusInfo.BusLocation);
@@ -245,11 +248,12 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                         }
                     }, 7000);
                 } else {
-                    InfoClasses.Bluetooth.disconnectBluetoothDevice(getContext());
-                    ActionButton.setText("Connect To your Bus");
 
                     InfoClasses.BusInfo.disconnectFromBus(getContext());
                     EndRouteButton.callOnClick();
+
+                    InfoClasses.Bluetooth.disconnectBluetoothDevice(getContext());
+                    ActionButton.setText("Connect To your Bus");
 
                     Vibrator q = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
                     q.vibrate(100);
@@ -281,17 +285,22 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
 
                 String completedRoute = InfoClasses.BusInfo.CurrentRoute;
 
-                Log.e("tag", completedRoute);
-                InfoClasses.BusInfo.CompletedBusRoutes.add(completedRoute);
-                SaveData.SaveCompletedBusRoutes();
+                if(completedRoute != null) {
+                    Log.e("tag", completedRoute);
+                    InfoClasses.BusInfo.CompletedBusRoutes.add(completedRoute);
+                    SaveData.SaveCompletedBusRoutes();
 
-                int index = InfoClasses.BusInfo.AssignedBusRoutes.lastIndexOf(InfoClasses.BusInfo.CurrentRoute);
-                InfoClasses.BusInfo.CurrentRoute = null;
+                    int index = InfoClasses.BusInfo.AssignedBusRoutes.lastIndexOf(InfoClasses.BusInfo.CurrentRoute);
+                    InfoClasses.BusInfo.CurrentRoute = null;
 
-                checkBoxes.get(index).setChecked(true);
-                buttons.get(index).setClickable(false);
+                    checkBoxes.get(index).setChecked(true);
+                    buttons.get(index).setClickable(false);
+                    ResetRouteButton.setVisibility(View.VISIBLE);
+
+
+                }
                 EndRouteButton.setVisibility(View.INVISIBLE);
-                ResetRouteButton.setVisibility(View.VISIBLE);
+
 
                 InfoClasses.Status.inRoute = false;
             }
@@ -331,7 +340,6 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                         InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
                                         InfoClasses.BusInfo.marker.setPosition(new LatLng(0,0));
                                         InfoClasses.BusInfo.marker.setVisible(false);
-                                        InfoClasses.BusInfo.marker.setIcon(InfoClasses.Markers.BusBitmap);
                                         InfoClasses.BusInfo.marker.setTag("myBus");
 
                                         if (InfoClasses.BusInfo.AssignedBusRoutes.size() != 0) {

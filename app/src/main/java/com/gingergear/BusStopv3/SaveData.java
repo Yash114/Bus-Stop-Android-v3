@@ -142,15 +142,22 @@ public class SaveData {
         return -1;
     }
 
-    public static void SaveCounty(String County, String State) {
+    public static void SaveKEY(String x) {
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
-        editor.putString("County", County);
-        editor.putString("State", State);
+        editor.putString("KEY", x);
+
+        Log.i("tag", x + " :");
+
 
         editor.apply();
-        Log.i("Save", "Successfully saved: " + County + "as you default county");
+    }
 
+    public static String ReadKEY() {
+
+        String j = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("KEY", null);
+        Log.i("tag", j + " :");
+        return j;
     }
 
     public static Hashtable<String, String> ReadCounty() {

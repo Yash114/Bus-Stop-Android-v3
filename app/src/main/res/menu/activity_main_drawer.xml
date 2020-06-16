@@ -28,11 +28,26 @@
             android:id="@+id/nav_busSettings"
             android:icon="@drawable/ic_baseline_directions_bus_24"
             android:title="@string/menu_driverbus" />
+
         <item
             android:id="@+id/nav_adminDashBoard"
             android:icon="@drawable/ic_baseline_business_center_24"
             android:title="@string/menu_admincontrol" />
 
+        <item
+            android:id="@+id/nav_Text"
+            android:icon="@drawable/ic_baseline_textsms_24"
+            android:title="Comms." />
     </group>
 
+    <group
+        android:id="@+id/exitMenu"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_Logout"
+            android:icon="@drawable/ic_baseline_exit_to_app_24"
+            android:title="Logout" />
+
+    </group>
 </menu>

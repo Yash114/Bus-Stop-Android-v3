@@ -73,7 +73,6 @@ public class MapFragment extends Fragment {
         if(InfoClasses.Status.ActiveFragment != -1) {
             MainActivity.updates(true);
         }
-
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Map;
 
     }
@@ -127,16 +126,12 @@ public class MapFragment extends Fragment {
     }
 
     public static void RecreateMapObjects() {
-
-//        MainActivity.mMap.clear();
-//
         InfoClasses.MyInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
                 .icon(InfoClasses.Markers.MyBitmap)
                 .position(new LatLng(0, 0))
                 .title("Your Current Location")
                 .snippet("Click me to set this as your address!")
                 .visible(false));
-        InfoClasses.MyInfo.marker.showInfoWindow();
 
         if(InfoClasses.MyInfo.savedLocation != null){
             InfoClasses.MyInfo.marker.setTitle(InfoClasses.MyInfo.Address);
@@ -178,6 +173,9 @@ public class MapFragment extends Fragment {
 //
 //        } catch (NullPointerException e) {
 //        }
+
+        temp = null;
+        Last_Bus_Current_Location = null;
     }
 
     public static void unfocusMap() {

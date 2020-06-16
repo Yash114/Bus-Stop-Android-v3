@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
+import com.gingergear.BusStopv3.ui.Map.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -55,6 +56,26 @@ public class InfoClasses {
 
     }
 
+    public static class Login {
+
+        public static String Username;
+        public static String Password;
+        public static String key;
+        public static int gatheredMode = 0;
+
+        public static String ERROR;
+
+        static public void reset() {
+
+            Username = null;
+            Password = null;
+            key = null;
+            gatheredMode = 0;
+            ERROR = null;
+        }
+    }
+
+
     public static class Markers {
 
         public static BitmapDescriptor MyBitmap;
@@ -63,13 +84,12 @@ public class InfoClasses {
         public static BitmapDescriptor BusBitmaps;
 
 
-        public Markers(Context context) {
+        public static void getMarkers(Context context) {
 
             Bitmap MyBitmapsi = getBitmapFromVectorDrawable(context, R.drawable.kid);
             Bitmap BusBitmapi = getBitmapFromVectorDrawable(context, R.drawable.bus);
             Bitmap BusGBitmai = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24);
             Bitmap BusGBitmapi = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24_grey);
-
 
 
             MyBitmap = BitmapDescriptorFactory.fromBitmap(MyBitmapsi);
@@ -104,6 +124,7 @@ public class InfoClasses {
         public String Route;
         public Boolean Active = false;
         public Marker marker;
+        public boolean updates = false;
 
         public Buses(String busNumber, LatLng busLocation, String school) {
 
@@ -122,7 +143,7 @@ public class InfoClasses {
 
         public void createMarker() {
 
-            if(Mode.RIDER()) {
+            if (Mode.RIDER()) {
                 marker = MainActivity.mMap.addMarker(new MarkerOptions()
                         .icon(Markers.BusBitmap)
                         .position(BusLocation)
@@ -153,7 +174,7 @@ public class InfoClasses {
 
             }
 
-            if(Active){
+            if (Active) {
 
                 marker.setIcon(Markers.BusBitmaps);
                 marker.setSnippet("Currently running route " + Route);
@@ -204,13 +225,17 @@ public class InfoClasses {
 
             for (Buses bus : CountyBuses.values()) {
 
-                bus.updatePosition();
-                bus.marker.setVisible(true);
-                Log.e("tag", "Update");
+                if(bus.updates) {
+                    bus.updates = false;
+                    bus.marker.setVisible(false);
+                    bus.createMarker();
+                    bus.updatePosition();
+                    Log.e("tag", "Update");
+                }
             }
         }
 
-        public static void recreateMarkers(){
+        public static void recreateMarkers() {
 
             for (Buses bus : CountyBuses.values()) {
 
@@ -233,8 +258,8 @@ public class InfoClasses {
         public static void disconnectFromBus(Context context) {
 
             if (Bluetooth.isConnected) {
-                InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
                 Internet.disconnectYourBus(BusNumber, BusLocation);
+                InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
                 context.stopService(BusControlFragment.intent);
                 Bluetooth.isConnected = false;
                 CurrentRoute = null;
@@ -290,6 +315,14 @@ public class InfoClasses {
                 bus.updatePosition();
             }
         }
+
+        public static void recreateMarkers() {
+
+            for (Buses bus : myBuses.values()) {
+
+                bus.createMarker();
+            }
+        }
     }
 
     public static class Bluetooth {
@@ -310,7 +343,7 @@ public class InfoClasses {
                     bluetoothGatt.disconnect();
                     bluetoothGatt.close();
                 }
-                Internet.CloseWebSocket();
+
                 isConnected = false;
                 InfoClasses.Status.inRoute = false;
                 context.stopService(BusControlFragment.intent);
@@ -445,6 +478,7 @@ public class InfoClasses {
         static public int Rider = 2;
         static public int Driver = 3;
         static public int Admin = 4;
+        static public int LOGIN = 5;
         static public int ActiveFragment = -1;
 
         public static boolean Map() {
@@ -466,6 +500,10 @@ public class InfoClasses {
         public static boolean Admin() {
             return ActiveFragment == Admin;
         }
+
+        public static boolean Login() {
+            return ActiveFragment == LOGIN;
+        }
     }
 
     public static class Mode {
@@ -473,7 +511,7 @@ public class InfoClasses {
         static public int ADMIN = 2;
         static public int DRIVER = 1;
         static public int RIDER = 0;
-        static public int Rider_Driver = RIDER;
+        static public int Rider_Driver = -1;
 
         static public boolean RIDER() {
 
@@ -497,21 +535,38 @@ public class InfoClasses {
 
                 Rider_Driver = DRIVER;
                 MainActivity.ModeJustChanged();
-                Internet.joinRoute_AsBus(BusInfo.BusNumber);
-                Internet.fetchYourRoutes(BusInfo.BusNumber);
                 SaveData.SaveAppMode(DRIVER);
+
+                ArrayList<String> data = SaveData.ReadBusCompletedRoutes();
+
+                if (data != null) {
+                    InfoClasses.BusInfo.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
+                }
 
                 Toast.makeText(context, "You just entered the secret Bus Driver Mode!", Toast.LENGTH_SHORT).show();
                 BusInfo.marker.setIcon(Markers.BusBitmap);
 
+                InfoClasses.Login.key = SaveData.ReadKEY();
+                Internet.joinRoute_AsBus(BusInfo.BusNumber);
+                Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
+
+
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
+
+                Icons(DRIVER);
+                Markers.getMarkers(context);
+
+
             }
         }
 
         public static void ChangeToRiderMode(Context context) {
 
             if (!RIDER()) {
+
+                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
+                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
 
                 MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
@@ -526,16 +581,6 @@ public class InfoClasses {
 
                     MyInfo.BusRoutes.addAll(routes);
                     MyInfo.ZonedSchools.addAll(buses);
-
-                    for (String s : MyInfo.ZonedSchools) {
-
-                        Log.e("tag", s);
-                    }
-
-                    for (String s : MyInfo.BusRoutes) {
-
-                        Log.e("tag", s);
-                    }
 
                     Internet.joinRoute_AsRider();
                 }
@@ -554,10 +599,11 @@ public class InfoClasses {
 
                 MainActivity.ModeJustChanged();
                 BusInfo.disconnectFromBus(context);
-                Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
 
-                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
-                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
+                Icons(RIDER);
+                Markers.getMarkers(context);
+
+                Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -566,17 +612,57 @@ public class InfoClasses {
             if (!ADMIN()) {
 
                 Rider_Driver = ADMIN;
-                MainActivity.ModeJustChanged();
                 BusInfo.disconnectFromBus(context);
+
+                SaveData.SaveAppMode(2);
+
+                InfoClasses.Login.key = SaveData.ReadKEY();
+
                 Internet.join_AsAdmin();
                 Internet.retrieveAllLocations();
                 Internet.retrieveAllRoutes();
-                SaveData.SaveAppMode(2);
+
+                MainActivity.ModeJustChanged();
 
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(true);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(true);
 
+                Icons(ADMIN);
+                Markers.getMarkers(context);
+
+
                 Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        public static void Icons(int Mode) {
+
+            MainActivity.navigationView.setCheckedItem(0);
+            if (Mode == ADMIN) {
+                MainActivity.navigationView.getMenu().getItem(1).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(2).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(4).setVisible(true);
+                MainActivity.navigationView.getMenu().getItem(3).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(5).setVisible(true);
+                MainActivity.navigationView.getMenu().getItem(6).setVisible(true);
+            }
+
+            if (Mode == DRIVER) {
+                MainActivity.navigationView.getMenu().getItem(1).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(2).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(4).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(3).setVisible(true);
+                MainActivity.navigationView.getMenu().getItem(5).setVisible(true);
+                MainActivity.navigationView.getMenu().getItem(6).setVisible(true);
+            }
+
+            if (Mode == RIDER) {
+                MainActivity.navigationView.getMenu().getItem(1).setVisible(true);
+                MainActivity.navigationView.getMenu().getItem(2).setVisible(true);
+                MainActivity.navigationView.getMenu().getItem(4).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(3).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(5).setVisible(false);
+                MainActivity.navigationView.getMenu().getItem(6).setVisible(false);
             }
         }
     }

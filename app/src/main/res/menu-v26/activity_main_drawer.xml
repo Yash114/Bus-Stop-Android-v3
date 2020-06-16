@@ -9,7 +9,8 @@
         <item
             android:id="@+id/nav_map"
             android:icon="@drawable/ic_baseline_map_24"
-            android:title="@string/menu_map" />
+            android:title="@string/menu_map"
+            android:iconTint="@color/colorPrimaryDark"/>
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_baseline_settings_24"
@@ -18,20 +19,32 @@
             android:id="@+id/nav_myBuses"
             android:icon="@drawable/ic_baseline_list_alt_24"
             android:title="@string/menu_riderbus" />
-    </group>
 
-    <group
-        android:id="@+id/exaltedMenu"
-        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_busSettings"
             android:icon="@drawable/ic_baseline_directions_bus_24"
             android:title="@string/menu_driverbus" />
+
         <item
             android:id="@+id/nav_adminDashBoard"
             android:icon="@drawable/ic_baseline_business_center_24"
             android:title="@string/menu_admincontrol" />
 
+        <item
+            android:id="@+id/nav_Text"
+            android:icon="@drawable/ic_baseline_textsms_24"
+            android:title="Comms." />
     </group>
 
+
+    <group
+        android:id="@+id/exitMenu"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_Logout"
+            android:icon="@drawable/ic_baseline_exit_to_app_24"
+            android:title="Logout" />
+
+    </group>
 </menu>

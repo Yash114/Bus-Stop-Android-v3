@@ -41,4 +41,16 @@
             android:label="@string/menu_admincontrol"
             tools:layout="@layout/adminsettings_fragment" />
 
+        <fragment
+            android:id="@+id/nav_Logout"
+            android:name="com.gingergear.BusStopv3.ui.empty"
+            android:label="Logout"
+            tools:layout="@layout/empty" />
+
+        <fragment
+            android:id="@+id/nav_Text"
+            android:name="com.gingergear.BusStopv3.ui.empty"
+            android:label="Comms."
+            tools:layout="@layout/empty" />
+
 </navigation>

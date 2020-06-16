@@ -457,6 +457,114 @@ public class Internet {
         }
     }
 
+
+    public static void login(String username, String password) {
+
+        if (SocketConnected) {
+            String county = "Henry";
+
+            String dataOut = "{\"action\" : \"login\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"username\" : \"" +
+                    username + "\" , \"password\" : \"" +
+                    password + "\"}}";
+
+            Log.e("websocket", "just logged in");
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+
+        }
+    }
+
+    public static void unJoin() {
+
+        if (SocketConnected) {
+
+            String dataOut = "{\"action\" : \"unJoin\"}}";
+
+            Log.e("websocket", "just logged out");
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+
+        }
+    }
+
+    //Admin Functions
+    public static void join_AsAdmin() {
+
+        if (SocketConnected) {
+
+            String county = "Henry";
+
+            String dataOut = "{\"action\" : \"joinAdmin\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
+
+            Log.e("websocket", "Joined Admin");
+
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    public static void retrieveAllRoutes() {
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"getAllRoutes\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
+
+            ws.send(dataOut);
+            Log.e("websocket", "Recieving all county routes");
+
+
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    public static void retrieveAllLocations() {
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"getBusLocations\", \"data\" : {\"county\" : \"" +
+                    county + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
+
+            ws.send(dataOut);
+            Log.e("websocket", "Recieving all county locations");
+
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+
+        }
+    }
+
+    //Bus Functions
     public static void sendLocations(LatLng latLng, String busRouteID, String busNumber) {
 
         if (SocketConnected) {
@@ -481,71 +589,7 @@ public class Internet {
 
     }
 
-    public static void join_AsAdmin() {
-
-        if (SocketConnected) {
-
-            String county = "Henry";
-
-            String dataOut = "{\"action\" : \"joinAdmin\" , \"data\" : {\"county\" : \"" +
-                    county + "\"}}";
-
-            Log.e("websocket", "Joined Admin");
-
-            ws.send(dataOut);
-        } else {
-
-            Log.e("websocket", "ERROR");
-            CreateWebSocketConnection();
-
-        }
-
-    }
-
-    public static void retrieveAllRoutes() {
-
-        if (SocketConnected) {
-
-            String county = InfoClasses.county;
-
-            String dataOut = "{\"action\" : \"getAllRoutes\" , \"data\" : {\"county\" : \"" +
-                    county + "\"}}";
-
-            ws.send(dataOut);
-            Log.e("websocket", "Recieving all county routes");
-
-
-        } else {
-
-            Log.e("websocket", "ERROR");
-            CreateWebSocketConnection();
-
-        }
-
-    }
-
-    public static void retrieveAllLocations() {
-
-        if (SocketConnected) {
-
-            String county = InfoClasses.county;
-
-            String dataOut = "{\"action\" : \"getBusLocations\", \"data\" : {\"county\" : \"" +
-                    county + "\"}}";
-
-            ws.send(dataOut);
-            Log.e("websocket", "Recieving all county locations");
-
-        } else {
-
-            Log.e("websocket", "ERROR");
-            CreateWebSocketConnection();
-
-
-        }
-    }
-
-    public static void addBus(String busNumber, String driverName, ArrayList<String> routes){
+    public static void addBus(String busNumber, String driverName, ArrayList<String> routes) {
 
         if (SocketConnected) {
 
@@ -560,7 +604,8 @@ public class Internet {
                     routes.get(2) + "\", \"name\" : \"" +
                     driverName + "\", \"lat\" : \"" +
                     center.latitude + "\", \"lng\" : \"" +
-                    center.longitude + "\"}}";
+                    center.longitude + ", \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
 
             ws.send(dataOut);
             Log.e("websocket", "Created Bus " + busNumber);
@@ -609,7 +654,7 @@ public class Internet {
                     busNumber + "\", \"exalt\" : \"1\"}}";
 
             ws.send(dataOut);
-            Log.e("websocket", "Connected yuor bus");
+            Log.e("websocket", "Connected your bus");
 
         } else {
 
@@ -621,6 +666,49 @@ public class Internet {
 
     }
 
+    public static void fetchYourRoutes(String busNumber) {
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"joinBus\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"busNumber\" : \"" +
+                    busNumber + "\"}}";
+
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+
+    }
+
+    public static void disconnectYourBus(String busNumber, LatLng location) {
+
+        if (SocketConnected && location != null) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"disconnectBus\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"busNumber\" : \"" +
+                    busNumber + "\" , \"lat\" : \"" +
+                    location.latitude + "\" , \"lng\" : \"" +
+                    location.longitude + "\"}}";
+            Log.i("websocket", "Bus exit");
+
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+
+        }
+    }
+
+    //Pleb Functions
     public static void joinRoute_AsRider() {
 
         if (SocketConnected) {
@@ -671,46 +759,6 @@ public class Internet {
 
     }
 
-    public static void fetchYourRoutes(String busNumber) {
-
-        if (SocketConnected) {
-
-            String county = InfoClasses.county;
-
-            String dataOut = "{\"action\" : \"joinBus\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"busNumber\" : \"" +
-                    busNumber + "\"}}";
-
-            ws.send(dataOut);
-        } else {
-
-            Log.e("websocket", "ERROR");
-            CreateWebSocketConnection();
-
-        }
-
-    }
-
-    public static void disconnectYourBus(String busNumber, LatLng location) {
-
-        if (SocketConnected && location != null) {
-
-            String county = InfoClasses.county;
-
-            String dataOut = "{\"action\" : \"disconnectBus\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"busNumber\" : \"" +
-                    busNumber + "\" , \"lat\" : \"" +
-                    location.latitude + "\" , \"lng\" : \"" +
-                    location.longitude + "\"}}";
-
-            ws.send(dataOut);
-        } else {
-
-            Log.e("websocket", "ERROR");
-            CreateWebSocketConnection();
-
-        }
-    }
 
     public static final class EchoWebSocketListener extends WebSocketListener {
         private static final int NORMAL_CLOSURE_STATUS = 1000;
@@ -755,7 +803,7 @@ public class Internet {
 
                             InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation, InfoClasses.MyInfo.getSchoolFromRoute(RouteID));
                             InfoClasses.MyInfo.myBuses.put(RouteID, newBus);
-
+                            InfoClasses.MyInfo.recreateMarkers();
                             Log.e("tag", "Created a new bus instance");
                         }
 
@@ -764,21 +812,33 @@ public class Internet {
                         if (InfoClasses.AdminInfo.CountyBuses.containsKey(BusNumber)) {
 
                             InfoClasses.Buses thisBus = InfoClasses.AdminInfo.CountyBuses.get(BusNumber);
-                            thisBus.BusLocation = BusLocation;
-                            thisBus.Route = RouteID;
 
-                            if (!thisBus.BusNumber.equals(BusNumber)) {
+                            if(object.getString("Disconnect").equals("0")) {
+                                thisBus.BusLocation = BusLocation;
+                                thisBus.Route = RouteID;
 
-                                //TODO show a notification or sum
-                                thisBus.BusNumber = BusNumber;
+                                if (!thisBus.BusNumber.equals(BusNumber)) {
+
+                                    //TODO show a notification or sum
+                                    thisBus.BusNumber = BusNumber;
+                                }
+
+                                Log.e("tag", "Updated bus info");
+
+                                thisBus.Active = true;
+                                if (MainActivity.focus != InfoClasses.countyCenters.get(InfoClasses.county)) {
+                                    MainActivity.focus = thisBus.BusLocation;
+                                }
+                            }
+                            if(object.getString("Disconnect").equals("1")) {
+
+                                thisBus.Active = false;
+                                thisBus.Route = null;
+
                             }
 
-                            Log.e("tag", "Updated bus info");
-                            thisBus.Active = true;
-
-                            if(MainActivity.focus != InfoClasses.countyCenters.get(InfoClasses.county)) {
-                                MainActivity.focus = thisBus.BusLocation;
-                            }
+                            thisBus.updates = true;
+                            MainActivity.UpdatesAvailable = true;
 
                         }
 
@@ -821,7 +881,7 @@ public class Internet {
                 if (text.contains("allBusLocations")) {
                     JSONObject object = jObject.getJSONObject("allBusLocations");
 
-                    for(int x = 0; x < object.getInt("number"); x++) {
+                    for (int x = 0; x < object.getInt("number"); x++) {
 
                         JSONObject bb = object.getJSONObject("data").getJSONObject(Integer.toString(x));
                         Log.i("tag", bb.toString());
@@ -844,13 +904,46 @@ public class Internet {
                 if (text.contains("AllRoutes")) {
                     JSONObject object = jObject.getJSONObject("AllRoutes");
                     InfoClasses.AdminInfo.AvailableRoutes.clear();
-                    for(int x = 0; x < object.getInt("number"); x++) {
+                    for (int x = 0; x < object.getInt("number"); x++) {
 
                         String bb = object.getJSONArray("data").getJSONArray(x).getString(1);
                         InfoClasses.AdminInfo.AvailableRoutes.add(bb);
                     }
                 }
 
+                if (text.contains("Login Response")) {
+
+                    JSONObject object = jObject.getJSONObject("Login Response");
+                    if (object.getString("error").equals("NULL")) {
+
+                        SaveData.SaveKEY(object.getString("key"));
+
+                        if (object.getInt("exalt") == 1) {
+                            InfoClasses.Login.gatheredMode = 1;
+                            InfoClasses.BusInfo.BusDriver = object.getString("name");
+
+                        } else {
+
+                            InfoClasses.Login.gatheredMode = 2;
+                            InfoClasses.AdminInfo.user = object.getString("name");
+                        }
+
+                        Log.i("tag", "Just successfully logged in!");
+
+                    } else {
+
+                        InfoClasses.Login.ERROR = object.getString("error");
+                        Log.i("tag", "Just UNsuccessfully logged in!");
+
+                    }
+
+
+                }
+
+                if (text.contains("Login Error")) {
+
+                    MainActivity.OpenLOGIN();
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
