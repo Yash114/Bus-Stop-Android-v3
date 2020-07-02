@@ -234,7 +234,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
 
                                     if (InfoClasses.Bluetooth.isConnected) {
                                         ActionButton.setText("Disconnect");
-                                        Internet.disconnectYourBus(InfoClasses.BusInfo.BusNumber, InfoClasses.BusInfo.BusLocation);
+                                        Internet.disconnectYourBus();
 
                                         Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
                                         v.vibrate(100);
@@ -246,7 +246,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                 }
                             });
                         }
-                    }, 7000);
+                    }, 3500);
                 } else {
 
                     InfoClasses.BusInfo.disconnectFromBus(getContext());
@@ -269,7 +269,6 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                     buttons.get(x).setClickable(true);
 
                     InfoClasses.BusInfo.CompletedBusRoutes.clear();
-                    InfoClasses.BusInfo.disconnectFromBus(getContext());
                     SaveData.SaveCompletedBusRoutes();
 
                     EndRouteButton.setVisibility(View.INVISIBLE);

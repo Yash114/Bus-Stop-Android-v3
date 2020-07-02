@@ -50,7 +50,10 @@ public class LoginFragment extends Fragment {
                 String User = username.getText().toString();
                 String Pass = password.getText().toString();
 
-                Internet.login(User, Pass);
+                InfoClasses.Login.Username = User;
+                InfoClasses.Login.Password = Pass;
+
+                Internet.login();
                 InfoClasses.Login.reset();
 
                 submitButton.setText("Loading...");
@@ -87,6 +90,7 @@ public class LoginFragment extends Fragment {
                                     MainActivity.ChangeToMapView();
                                 } else {
 
+//                                    InfoClasses.Mode.ChangeToRiderMode(getContext());
                                     Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
                                     v.vibrate(300);
                                     Toast.makeText(getContext(), InfoClasses.Login.ERROR, Toast.LENGTH_LONG).show();

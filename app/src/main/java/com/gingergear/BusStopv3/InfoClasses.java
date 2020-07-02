@@ -1,5 +1,6 @@
 package com.gingergear.BusStopv3;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -8,18 +9,23 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
@@ -126,6 +132,8 @@ public class InfoClasses {
         public Marker marker;
         public boolean updates = false;
 
+        public int counter = 15;
+
         public Buses(String busNumber, LatLng busLocation, String school) {
 
             BusNumber = busNumber;
@@ -145,7 +153,7 @@ public class InfoClasses {
 
             if (Mode.RIDER()) {
                 marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                        .icon(Markers.BusBitmap)
+                        .icon(Markers.BusBitmaps)
                         .position(BusLocation)
                         .title(BusNumber)
                         .snippet("Runnning for " + School)
@@ -157,12 +165,18 @@ public class InfoClasses {
                         .position(BusLocation)
                         .snippet(Active ? "Currently running route " + Route : "Not currently active")
                         .title(BusNumber)
+                        .rotation(0)
                         .visible(true));
+
             }
+            marker.setTag("bus");
+
+
         }
 
         public void updatePosition() {
 
+            counter = 15;
             if (marker == null) {
 
                 createMarker();
@@ -182,8 +196,10 @@ public class InfoClasses {
 
             } else {
                 marker.setIcon(Markers.BusBitmapGREYs);
+                marker.setSnippet("Not currently active");
                 marker.setFlat(true);
             }
+
 
             final Handler handler = new Handler();
             final long start = SystemClock.uptimeMillis();
@@ -221,14 +237,15 @@ public class InfoClasses {
         public static ArrayList<String> AvailableBusNumbers = new ArrayList<>();
         public static ArrayList<String> AvailableRoutes = new ArrayList<>();
 
+        public static Boolean updateAllLocations = false;
+
         public static void updateBusPositions() {
 
             for (Buses bus : CountyBuses.values()) {
 
-                if(bus.updates) {
+                if (bus.updates) {
                     bus.updates = false;
-                    bus.marker.setVisible(false);
-                    bus.createMarker();
+                    bus.marker.setVisible(true);
                     bus.updatePosition();
                     Log.e("tag", "Update");
                 }
@@ -237,6 +254,7 @@ public class InfoClasses {
 
         public static void recreateMarkers() {
 
+            MainActivity.mMap.clear();
             for (Buses bus : CountyBuses.values()) {
 
                 bus.createMarker();
@@ -258,7 +276,7 @@ public class InfoClasses {
         public static void disconnectFromBus(Context context) {
 
             if (Bluetooth.isConnected) {
-                Internet.disconnectYourBus(BusNumber, BusLocation);
+                Internet.disconnectYourBus();
                 InfoClasses.Bluetooth.disconnectBluetoothDevice(context);
                 context.stopService(BusControlFragment.intent);
                 Bluetooth.isConnected = false;
@@ -295,6 +313,7 @@ public class InfoClasses {
         public static LatLng savedLocation = null;
 
         public static Marker marker;
+        public static boolean NewBus = false;
 
         public static String getSchoolFromRoute(String Route) {
 
@@ -312,12 +331,17 @@ public class InfoClasses {
 
             for (Buses bus : myBuses.values()) {
 
-                bus.updatePosition();
+                if(bus.updates) {
+                    bus.updatePosition();
+                    bus.updates = false;
+                    bus.counter = 15;
+                }
             }
         }
 
         public static void recreateMarkers() {
 
+            MainActivity.mMap.clear();
             for (Buses bus : myBuses.values()) {
 
                 bus.createMarker();
@@ -387,6 +411,7 @@ public class InfoClasses {
                             if (devices.getName().equals(BluetoothName)) {
                                 availableDevices.clear();
                                 connectedDevice = devices;
+                                Log.e("Bluetooth", devices.getAddress());
 
                                 Log.e("Bluetooth", "Bluetooth Device Found");
 
@@ -457,7 +482,7 @@ public class InfoClasses {
 
                     isSearching = false;
                 }
-            }, 7000);
+            }, 3500);
         }
     }
 
@@ -513,6 +538,8 @@ public class InfoClasses {
         static public int RIDER = 0;
         static public int Rider_Driver = -1;
 
+        static public ArrayList<MenuItem> icons = new ArrayList<>();
+
         static public boolean RIDER() {
 
             return RIDER == Rider_Driver;
@@ -528,45 +555,13 @@ public class InfoClasses {
             return ADMIN == Rider_Driver;
         }
 
-
-        public static void ChangeToDriverMode(Context context) {
-
-            if (!DRIVER()) {
-
-                Rider_Driver = DRIVER;
-                MainActivity.ModeJustChanged();
-                SaveData.SaveAppMode(DRIVER);
-
-                ArrayList<String> data = SaveData.ReadBusCompletedRoutes();
-
-                if (data != null) {
-                    InfoClasses.BusInfo.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
-                }
-
-                Toast.makeText(context, "You just entered the secret Bus Driver Mode!", Toast.LENGTH_SHORT).show();
-                BusInfo.marker.setIcon(Markers.BusBitmap);
-
-                InfoClasses.Login.key = SaveData.ReadKEY();
-                Internet.joinRoute_AsBus(BusInfo.BusNumber);
-                Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
-
-
-                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
-                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
-
-                Icons(DRIVER);
-                Markers.getMarkers(context);
-
-
-            }
-        }
-
         public static void ChangeToRiderMode(Context context) {
 
             if (!RIDER()) {
 
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
+
 
                 MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
@@ -594,16 +589,69 @@ public class InfoClasses {
                         MyInfo.CurrentLocation = savedPos;
                         MyInfo.Address = SaveData.ReadMySavedAddy();
                     }
+                } else {
+
+                    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context , Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        return;
+                    }
+                    MainActivity.mMap.setMyLocationEnabled(true);
                 }
 
 
                 MainActivity.ModeJustChanged();
                 BusInfo.disconnectFromBus(context);
 
-                Icons(RIDER);
                 Markers.getMarkers(context);
 
                 Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        public static void ChangeToDriverMode(Context context) {
+
+            if (!DRIVER()) {
+
+                Rider_Driver = DRIVER;
+                MainActivity.ModeJustChanged();
+                SaveData.SaveAppMode(DRIVER);
+                Icons(DRIVER);
+
+
+                ArrayList<String> data = SaveData.ReadBusCompletedRoutes();
+
+                if (data != null) {
+                    InfoClasses.BusInfo.CompletedBusRoutes = SaveData.ReadBusCompletedRoutes();
+                }
+
+                Toast.makeText(context, "You just entered the secret Bus Driver Mode!", Toast.LENGTH_SHORT).show();
+
+                InfoClasses.Login.key = SaveData.ReadKEY();
+                Internet.login();
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+
+                        Internet.joinRoute_AsBus(BusInfo.BusNumber);
+                        Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
+                    }
+                    }, 1000);
+
+
+                MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
+                MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
+
+                Markers.getMarkers(context);
+                BusInfo.marker.setIcon(Markers.BusBitmap);
+
+
             }
         }
 
@@ -615,19 +663,26 @@ public class InfoClasses {
                 BusInfo.disconnectFromBus(context);
 
                 SaveData.SaveAppMode(2);
+                Icons(ADMIN);
 
                 InfoClasses.Login.key = SaveData.ReadKEY();
 
-                Internet.join_AsAdmin();
-                Internet.retrieveAllLocations();
-                Internet.retrieveAllRoutes();
+                Internet.login();
+
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        Internet.join_AsAdmin();
+                        Internet.retrieveAllLocations();
+                        Internet.retrieveAllRoutes();
+                    }
+                }, 1000);
 
                 MainActivity.ModeJustChanged();
 
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(true);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(true);
 
-                Icons(ADMIN);
                 Markers.getMarkers(context);
 
 
@@ -637,32 +692,50 @@ public class InfoClasses {
 
         public static void Icons(int Mode) {
 
-            MainActivity.navigationView.setCheckedItem(0);
+            if(icons.size() == 0){
+
+                for(int x = 0; x < 7; x++){
+                    icons.add(MainActivity.navigationView.getMenu().getItem(x));
+                }
+            }
+
             if (Mode == ADMIN) {
-                MainActivity.navigationView.getMenu().getItem(1).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(2).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(4).setVisible(true);
-                MainActivity.navigationView.getMenu().getItem(3).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(5).setVisible(true);
-                MainActivity.navigationView.getMenu().getItem(6).setVisible(true);
+                changeVisibilityMenuItem(1, false);
+                changeVisibilityMenuItem(2, false);
+                changeVisibilityMenuItem(3, false);
+                changeVisibilityMenuItem(4, true);
+                changeVisibilityMenuItem(5, true);
+                changeVisibilityMenuItem(6, true);
             }
 
             if (Mode == DRIVER) {
-                MainActivity.navigationView.getMenu().getItem(1).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(2).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(4).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(3).setVisible(true);
-                MainActivity.navigationView.getMenu().getItem(5).setVisible(true);
-                MainActivity.navigationView.getMenu().getItem(6).setVisible(true);
+                changeVisibilityMenuItem(1, false);
+                changeVisibilityMenuItem(2, false);
+                changeVisibilityMenuItem(3, true);
+                changeVisibilityMenuItem(4, false);
+                changeVisibilityMenuItem(5, true);
+                changeVisibilityMenuItem(6, true);
             }
 
             if (Mode == RIDER) {
-                MainActivity.navigationView.getMenu().getItem(1).setVisible(true);
-                MainActivity.navigationView.getMenu().getItem(2).setVisible(true);
-                MainActivity.navigationView.getMenu().getItem(4).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(3).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(5).setVisible(false);
-                MainActivity.navigationView.getMenu().getItem(6).setVisible(false);
+                changeVisibilityMenuItem(1, true);
+                changeVisibilityMenuItem(2, true);
+                changeVisibilityMenuItem(3, false);
+                changeVisibilityMenuItem(4, false);
+                changeVisibilityMenuItem(5, false);
+                changeVisibilityMenuItem(6, false);
+            }
+
+            MainActivity.navigationView.setCheckedItem(0);
+
+        }
+
+        private static void changeVisibilityMenuItem(int index, boolean visibility){
+            if(icons.get(index).isVisible() != visibility) {
+                icons.get(index).setVisible(visibility);
+
+                Log.i("tag", icons.get(index).getTitle().toString() + ": " + (icons.get(index).isVisible() ? "vis" : "invis"));
+
             }
         }
     }

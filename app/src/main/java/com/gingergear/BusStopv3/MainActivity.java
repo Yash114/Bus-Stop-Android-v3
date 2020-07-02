@@ -168,11 +168,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
 
+                drawer.closeDrawers();
                 String Title = item.getTitle().toString();
 
                 Fragment ContainerViewID = new MapFragment();
                 int fragmentID = R.id.nav_map;
 
+                boolean go = true;
                 switch (Title) {
 
                     case ("Main Map"):
@@ -205,30 +207,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         fragmentID = R.id.nav_adminDashBoard;
 
                         break;
+
+                    default:
+                        navigationView.setCheckedItem(R.id.nav_map);
+                        InfoClasses.Mode.ChangeToRiderMode(getApplicationContext());
+
+                        FragmentTransaction trans = fragmentManager.beginTransaction();
+                        trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+                        trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+                        go = false;
                 }
 
-                boolean go = true;
-
-                if (Title.equals("Logout")) {
-
-                    InfoClasses.Mode.ChangeToRiderMode(getApplicationContext());
-
-                    FragmentTransaction trans = fragmentManager.beginTransaction();
-                    trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-                    trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
-                    navigationView.setCheckedItem(R.id.map);
-
-                    go = false;
-                    drawer.closeDrawers();
-                }
 
                 if (go) {
                     FragmentTransaction trans = fragmentManager.beginTransaction();
                     trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                     trans.replace(R.id.nav_host_fragment, ContainerViewID).commit();
                     navigationView.setCheckedItem(fragmentID);
-
-                    drawer.closeDrawers();
                 }
 
                 return false;
@@ -239,6 +234,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         FragmentTransaction trans = fragmentManager.beginTransaction();
         trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
         trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+
+        MainActivity.navigationView.getMenu().getItem(0).setVisible(true);
+        MainActivity.navigationView.getMenu().getItem(1).setVisible(true);
+        MainActivity.navigationView.getMenu().getItem(2).setVisible(true);
+        MainActivity.navigationView.getMenu().getItem(4).setVisible(true);
+        MainActivity.navigationView.getMenu().getItem(3).setVisible(true);
+        MainActivity.navigationView.getMenu().getItem(5).setVisible(true);
+        MainActivity.navigationView.getMenu().getItem(6).setVisible(true);
+
         navigationView.setCheckedItem(R.id.nav_map);
 
         View gifDrawable = findViewById(R.id.GIF);
@@ -246,23 +250,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         gifDrawable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!InfoClasses.Status.Login()) {
 
-                Log.i("tag", Integer.toString(numberOfClicks));
-                if (numberOfClicks == 0) {
-                    new Timer().schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            runOnUiThread(new Runnable() {
-                                public void run() {
+                    Log.i("tag", Integer.toString(numberOfClicks));
+                    if (numberOfClicks == 0) {
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
 
-                                    numberOfClicks = 0;
-                                }
-                            });
-                        }
-                    }, 3000);
+                                        numberOfClicks = 0;
+                                    }
+                                });
+                            }
+                        }, 3000);
+                    }
+
+                    numberOfClicks += 1;
+                } else {
+
+                    FragmentTransaction trans = fragmentManager.beginTransaction();
+                    trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+                    trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
                 }
-
-                numberOfClicks += 1;
             }
         });
 
@@ -680,7 +691,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     static public void ModeJustChanged() {
 
         MapFragment.RecreateMapObjects();
-
         MapFragment.unfocusMap();
         UpdatesAvailable = true;
     }
@@ -791,7 +801,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             } else if (InfoClasses.Mode.RIDER()) {
 
-                if (InfoClasses.MyInfo.savedLocation == null || bypass) {
+                if (InfoClasses.MyInfo.savedLocation == null) {
                     if (MapFragment.coordAuthenticatior(InfoClasses.MyInfo.CurrentLocation)) {
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(InfoClasses.MyInfo.CurrentLocation)
@@ -810,16 +820,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 } else {
 
+                    for (InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()) {
+                        bus.counter -= 1;
+                        if (bus.counter == 0) {
+
+                            bus.counter = 15;
+                            bus.Active = false;
+                            bus.marker.setVisible(false);
+                        }
+                    }
+
                     if (UpdatesAvailable || bypass) {
 
-
                         UpdatesAvailable = false;
+                        if (InfoClasses.MyInfo.NewBus || bypass) {
+
+                            InfoClasses.MyInfo.NewBus = false;
+                            InfoClasses.MyInfo.recreateMarkers();
+                            MapFragment.RecreateMapObjects();
+                            InfoClasses.MyInfo.marker.setVisible(true);
+                            InfoClasses.MyInfo.marker.setPosition(InfoClasses.MyInfo.savedLocation);
+                            Log.i("tag", "fhuvibyhd");
+                        }
+
                         InfoClasses.MyInfo.updateBusPositions();
 
                         ArrayList<LatLng> positions = new ArrayList<>();
                         for (InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()) {
 
-                            positions.add(bus.BusLocation);
+                            if(bus.Active) {
+                                positions.add(bus.BusLocation);
+                            }
                         }
 
                         double longestLength = 200;
@@ -842,22 +873,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
                         }
-                        InfoClasses.MyInfo.marker.setPosition(InfoClasses.MyInfo.savedLocation);
-                        InfoClasses.MyInfo.marker.setVisible(true);
-                        InfoClasses.MyInfo.marker.setIcon(InfoClasses.Markers.MyBitmap);
                     }
                 }
             } else if (InfoClasses.Mode.ADMIN()) {
 
                 if (UpdatesAvailable || bypass) {
 
-                    if (InfoClasses.Status.Map()) {
-
                         UpdatesAvailable = false;
-                    }
 
 
-                    if (bypass) {
+                    if (bypass || InfoClasses.AdminInfo.updateAllLocations) {
+                        InfoClasses.AdminInfo.updateAllLocations = false;
                         InfoClasses.AdminInfo.recreateMarkers();
 
                         CameraPosition cameraPosition = new CameraPosition.Builder()

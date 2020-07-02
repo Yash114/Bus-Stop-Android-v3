@@ -150,14 +150,14 @@ public class MapFragment extends Fragment {
             InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
         }
 
-        InfoClasses.BusInfo.marker.setTag("Bus' Location");
-//
-        for(InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()){
+//        InfoClasses.BusInfo.marker.setTag("Bus' Location");
 
-            if(bus.marker == null){
-                bus.createMarker();
-            }
-        }
+//        for(InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()){
+//
+//            if(bus.marker == null){
+//                bus.createMarker();
+//            }
+//        }
 //
 //        try {
 //            MainActivity.mMap.addPolyline(mpolyline);

@@ -458,26 +458,43 @@ public class Internet {
     }
 
 
-    public static void login(String username, String password) {
+    public static void login() {
+
+        String username = InfoClasses.Login.Username;
+        String county = "Henry";
 
         if (SocketConnected) {
-            String county = "Henry";
+            if (username != null) {
+                String password = InfoClasses.Login.Password;
 
-            String dataOut = "{\"action\" : \"login\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"username\" : \"" +
-                    username + "\" , \"password\" : \"" +
-                    password + "\"}}";
+                String dataOut = "{\"action\" : \"login\" , \"data\" : {\"county\" : \"" +
+                        county + "\" , \"username\" : \"" +
+                        username + "\" , \"password\" : \"" +
+                        password + "\"}}";
 
-            Log.e("websocket", "just logged in");
-            ws.send(dataOut);
+                Log.e("websocket", "just logged in");
+                ws.send(dataOut);
+
+            } else {
+
+                String key = InfoClasses.Login.key;
+                String dataOut = "{\"action\" : \"login\" , \"data\" : {\"county\" : \"" +
+                        county + "\" , \"key\" : \"" +
+                        key + "\"}}";
+
+                Log.e("websocket", "just logged in");
+                ws.send(dataOut);
+            }
         } else {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
-
+            login();
 
         }
+
     }
+
 
     public static void unJoin() {
 
@@ -514,6 +531,7 @@ public class Internet {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
+            join_AsAdmin();
 
         }
 
@@ -537,7 +555,7 @@ public class Internet {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
-
+            retrieveAllRoutes();
         }
 
     }
@@ -559,6 +577,7 @@ public class Internet {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
+            retrieveAllLocations();
 
 
         }
@@ -686,11 +705,13 @@ public class Internet {
 
     }
 
-    public static void disconnectYourBus(String busNumber, LatLng location) {
+    public static void disconnectYourBus() {
 
-        if (SocketConnected && location != null) {
+        if (SocketConnected) {
 
             String county = InfoClasses.county;
+            String busNumber = InfoClasses.BusInfo.BusNumber;
+            LatLng location = InfoClasses.BusInfo.BusLocation;
 
             String dataOut = "{\"action\" : \"disconnectBus\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
@@ -704,6 +725,7 @@ public class Internet {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
+            disconnectYourBus();
 
         }
     }
@@ -789,7 +811,10 @@ public class Internet {
                         if (InfoClasses.MyInfo.myBuses.containsKey(RouteID)) {
 
                             InfoClasses.Buses thisBus = InfoClasses.MyInfo.myBuses.get(RouteID);
+                            thisBus.Active = object.getString("Disconnect").equals("0");
                             thisBus.BusLocation = BusLocation;
+                            thisBus.updates = true;
+
 
                             if (!thisBus.BusNumber.equals(BusNumber)) {
 
@@ -802,8 +827,11 @@ public class Internet {
                         } else {
 
                             InfoClasses.Buses newBus = new InfoClasses().new Buses(BusNumber, BusLocation, InfoClasses.MyInfo.getSchoolFromRoute(RouteID));
+                            newBus.Active = object.getString("Disconnect").equals("0");
                             InfoClasses.MyInfo.myBuses.put(RouteID, newBus);
-                            InfoClasses.MyInfo.recreateMarkers();
+                            newBus.Route = RouteID;
+
+                            InfoClasses.MyInfo.NewBus = true;
                             Log.e("tag", "Created a new bus instance");
                         }
 
@@ -816,6 +844,8 @@ public class Internet {
                             if(object.getString("Disconnect").equals("0")) {
                                 thisBus.BusLocation = BusLocation;
                                 thisBus.Route = RouteID;
+                                thisBus.Active = true;
+
 
                                 if (!thisBus.BusNumber.equals(BusNumber)) {
 
@@ -825,7 +855,6 @@ public class Internet {
 
                                 Log.e("tag", "Updated bus info");
 
-                                thisBus.Active = true;
                                 if (MainActivity.focus != InfoClasses.countyCenters.get(InfoClasses.county)) {
                                     MainActivity.focus = thisBus.BusLocation;
                                 }
@@ -838,8 +867,6 @@ public class Internet {
                             }
 
                             thisBus.updates = true;
-                            MainActivity.UpdatesAvailable = true;
-
                         }
 
                     }
@@ -899,6 +926,8 @@ public class Internet {
 
                         }
                     }
+
+                    InfoClasses.AdminInfo.updateAllLocations = true;
                 }
 
                 if (text.contains("AllRoutes")) {
@@ -917,6 +946,7 @@ public class Internet {
                     if (object.getString("error").equals("NULL")) {
 
                         SaveData.SaveKEY(object.getString("key"));
+                        InfoClasses.Login.key = object.getString("key");
 
                         if (object.getInt("exalt") == 1) {
                             InfoClasses.Login.gatheredMode = 1;

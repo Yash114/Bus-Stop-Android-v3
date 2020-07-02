@@ -132,8 +132,6 @@ public class Background_Update extends IntentService {
 
         while (counter <= 20) {
 
-            if (true) {
-
                 if (InfoClasses.Bluetooth.isConnected) {
 
                     if (!LocationString.equals("")) {
@@ -164,13 +162,13 @@ public class Background_Update extends IntentService {
                     stopSelf();
 
                 }
-            }
 
             try {
 
                 Thread.sleep(150);
             } catch (InterruptedException e) {
             }
+            counter -= 1;
         }
 
         InfoClasses.Status.Status = InfoClasses.Status.Disconnected;
