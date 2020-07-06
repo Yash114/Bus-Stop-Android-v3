@@ -126,6 +126,9 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
         checkBoxes.add(route_threec);
         checkBoxes.add(route_fourc);
 
+        BusDriverNameDisplay.setText("Welcome " + InfoClasses.BusInfo.BusDriver);
+        BusNumberDisplay.setText("#" + InfoClasses.BusInfo.BusNumber);
+
         if (InfoClasses.BusInfo.AssignedBusRoutes != null) {
 
             if (InfoClasses.Status.ActiveFragment == InfoClasses.Status.Driver) {

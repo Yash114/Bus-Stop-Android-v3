@@ -26,7 +26,7 @@
             android:textSize="42dp" />
 
         <TextView
-            android:id="@+id/statusBar"
+            android:id="@+id/nameBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Welcome Mr. Gregory"

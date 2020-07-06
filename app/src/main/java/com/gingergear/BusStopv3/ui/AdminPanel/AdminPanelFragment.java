@@ -48,6 +48,8 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
     private Button searchButton;
     private LinearLayout BusSettingsLayout;
 
+    private TextView NameView;
+
     private TextView BusInfo;
 
     private Button ViewOnMap;
@@ -88,12 +90,14 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Admin;
-        InfoClasses.Mode.ChangeToAdminMode(getContext());
 
         Internet.retrieveAllRoutes();
         Internet.retrieveAllLocations();
 
         root = inflater.inflate(R.layout.adminsettings_fragment, container, false);
+
+        NameView = root.findViewById(R.id.nameBar);
+        NameView.setText("Welcome " + InfoClasses.AdminInfo.user);
 
         busRouteList = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, InfoClasses.AdminInfo.AvailableRoutes);
 
