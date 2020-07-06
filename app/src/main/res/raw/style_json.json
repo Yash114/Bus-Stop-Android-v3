@@ -24,43 +24,14 @@
     ]
   },
   {
-    "featureType": "administrative.country",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#4b6878"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#64779e"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.neighborhood",
-    "stylers": [
-      {
-        "color": "#ffeb3b"
-      },
-      {
-        "visibility": "on"
-      }
-    ]
-  },
-  {
     "featureType": "administrative.neighborhood",
     "elementType": "geometry.fill",
     "stylers": [
       {
-        "color": "#3c1b75"
+        "color": "#8be2ff"
       },
       {
-        "visibility": "on"
+        "visibility": "simplified"
       }
     ]
   },
@@ -69,7 +40,13 @@
     "elementType": "geometry.stroke",
     "stylers": [
       {
-        "color": "#4b6878"
+        "color": "#bde4ff"
+      },
+      {
+        "visibility": "simplified"
+      },
+      {
+        "weight": 2
       }
     ]
   },
@@ -133,15 +110,6 @@
     "stylers": [
       {
         "color": "#1d2c4d"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.school",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#ff0002"
       }
     ]
   },

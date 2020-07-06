@@ -291,6 +291,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return false;
             }
         });
+
+        drawer.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                super.onDrawerSlide(drawerView, slideOffset);
+
+                if(InfoClasses.Status.Login()){
+
+                    drawer.closeDrawer(drawerView);
+                    FragmentTransaction trans = fragmentManager.beginTransaction();
+                    trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+                    trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+                }
+            }
+        });
+
+
         MapFragment.mainActivity = this;
 
         //location permission check
@@ -316,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         if (InfoClasses.Mode.Rider_Driver == InfoClasses.Mode.DRIVER) {
-            Internet.joinRoute_AsBus(InfoClasses.BusInfo.BusNumber);
+            Internet.joinRoute_AsBus();
             Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
         }
     }

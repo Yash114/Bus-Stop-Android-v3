@@ -127,7 +127,7 @@ public class InfoClasses {
         public LatLng BusLocation = new LatLng(0, 0);
         public String School;
         public String BusNumber;
-        public String Route;
+        public String Route = "null";
         public Boolean Active = false;
         public Marker marker;
         public boolean updates = false;
@@ -236,6 +236,9 @@ public class InfoClasses {
         public static Hashtable<String, Buses> CountyBuses = new Hashtable<>();
         public static ArrayList<String> AvailableBusNumbers = new ArrayList<>();
         public static ArrayList<String> AvailableRoutes = new ArrayList<>();
+
+        public static Hashtable<String, String> R2N = new Hashtable<>();
+        public static Hashtable<String, String> N2R = new Hashtable<>();
 
         public static Boolean updateAllLocations = false;
 
@@ -354,7 +357,6 @@ public class InfoClasses {
         public static BluetoothAdapter bluetoothAdapter;
         public static BluetoothDevice connectedDevice;
         public static BluetoothGatt bluetoothGatt;
-        private static BluetoothLeScanner BLEscanner;
         private static String BluetoothName = "BT05";
         public static Boolean isConnected = false;
         public static Boolean isSearching = false;
@@ -379,7 +381,7 @@ public class InfoClasses {
             isSearching = true;
             isConnected = false;
             ScanSettings.Builder scanSettings = new ScanSettings.Builder();
-            BLEscanner = bluetoothAdapter.getBluetoothLeScanner();
+            final BluetoothLeScanner BLEscanner = bluetoothAdapter.getBluetoothLeScanner();
 
             final ScanCallback BLEcallback = new ScanCallback() {
 
@@ -388,12 +390,18 @@ public class InfoClasses {
                     super.onScanResult(callbackType, result);
                     Log.i("Bluetooth", result.getDevice().getName());
 
+
                 }
 
                 @Override
                 public void onBatchScanResults(List<ScanResult> results) {
                     super.onBatchScanResults(results);
 
+                    for (ScanResult result : results) {
+//                        if (result.getDevice().getName() != null) {
+                            Log.e("Bluetooth", "Devices found: " + result.getDevice().getAddress());
+//                        }
+                    }
                     if (isSearching) {
 
                         ArrayList<BluetoothDevice> availableDevices = new ArrayList<>();
@@ -446,32 +454,30 @@ public class InfoClasses {
                             break;
 
                         case ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                            Log.e("bluetooth", "SCAN_FAILED_APPLICATION_REGISTRATION_FAILED");
+                            Log.e("Bluetooth", "SCAN_FAILED_APPLICATION_REGISTRATION_FAILED");
 
                             break;
 
                         case ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED:
-                            Log.e("bluetooth", "SCAN_FAILED_FEATURE_UNSUPPORTED");
+                            Log.e("Bluetooth", "SCAN_FAILED_FEATURE_UNSUPPORTED");
 
                             break;
 
                         case ScanCallback.SCAN_FAILED_INTERNAL_ERROR:
-                            Log.e("bluetooth", "SCAN_FAILED_INTERNAL_ERROR");
+                            Log.e("Bluetooth", "SCAN_FAILED_INTERNAL_ERROR");
 
                             break;
 
                         default:
-                            Log.e("bluetooth", "ERROR");
+                            Log.e("Bluetooth", "ERROR");
 
                     }
-
                 }
-
             };
 
             Log.d("Bluetooth", "Bluetooth Scan Initiated");
 
-            BLEscanner.startScan(null, scanSettings.setReportDelay(500).build(), BLEcallback);
+            BLEscanner.startScan(null, scanSettings.setReportDelay(1500).build(), BLEcallback);
 
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -482,7 +488,7 @@ public class InfoClasses {
 
                     isSearching = false;
                 }
-            }, 3500);
+            }, 7500);
         }
     }
 
@@ -559,6 +565,7 @@ public class InfoClasses {
 
             if (!RIDER()) {
 
+                Internet.refresh();
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
 
@@ -618,6 +625,7 @@ public class InfoClasses {
 
             if (!DRIVER()) {
 
+                Internet.refresh();
                 Rider_Driver = DRIVER;
                 MainActivity.ModeJustChanged();
                 SaveData.SaveAppMode(DRIVER);
@@ -639,7 +647,7 @@ public class InfoClasses {
                     @Override
                     public void run() {
 
-                        Internet.joinRoute_AsBus(BusInfo.BusNumber);
+                        Internet.joinRoute_AsBus();
                         Internet.fetchYourRoutes(InfoClasses.BusInfo.BusNumber);
                     }
                     }, 1000);
@@ -659,6 +667,7 @@ public class InfoClasses {
 
             if (!ADMIN()) {
 
+                Internet.refresh();
                 Rider_Driver = ADMIN;
                 BusInfo.disconnectFromBus(context);
 

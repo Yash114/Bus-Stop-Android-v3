@@ -34,6 +34,8 @@ import com.gingergear.BusStopv3.MainActivity;
 import com.gingergear.BusStopv3.R;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -102,7 +104,13 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
 
         searchBar = root.findViewById(R.id.search);
         searchButton = root.findViewById(R.id.searchButton);
-        ArrayAdapter<String> busNumberList = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, InfoClasses.AdminInfo.AvailableBusNumbers);
+
+        ArrayList<String> searchTerms = InfoClasses.AdminInfo.AvailableBusNumbers;
+
+        for(String route : InfoClasses.AdminInfo.R2N.keySet())
+            searchTerms.add(route);
+
+        ArrayAdapter<String> busNumberList = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, searchTerms);
 
         searchBar.setAdapter(busNumberList);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -112,40 +120,28 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
                 hideKeyboard();
                 searchBar.clearFocus();
 
+                final String Input = searchBar.getText().toString();
+                Log.i("tag", Input);
 
-                switch (searchMode) {
+                if (InfoClasses.AdminInfo.CountyBuses.containsKey(Input)) {
 
-                    case ("Bus Number"):
-                        final String Input = searchBar.getText().toString();
-                        Log.i("tag", Input);
+                    Log.i("tag", "found that Bus");
+                    Internet.fetchYourRoutes(Input);
 
-                        if (InfoClasses.AdminInfo.CountyBuses.containsKey(Input)) {
+                    OpenBusSettings(Input);
+                } else if (InfoClasses.AdminInfo.R2N.get(Input) != null) {
 
-                            Log.i("tag", "found that Bus");
-                            Internet.fetchYourRoutes(Input);
+                    Log.i("tag", "found that Bus");
 
-                            OpenBusSettings(Input);
-                        } else {
+                    String GatheredRouteNumber = InfoClasses.AdminInfo.R2N.get(Input);
 
-                            BusSettingsLayout.setVisibility(View.GONE);
-                        }
-                        break;
+                    Internet.fetchYourRoutes(GatheredRouteNumber);
+                    OpenBusSettings(GatheredRouteNumber);
+                } else {
 
-                    case ("Bus Route"):
-
-                        break;
-
-                    case ("Bus Driver Name"):
-
-                        break;
-
-                }
-                if (searchMode.equals("Bus Number")) {
-
-
+                    BusSettingsLayout.setVisibility(View.GONE);
                 }
 
-                searchBar.setText("");
             }
         });
 
@@ -423,7 +419,7 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
                                 @Override
                                 public void onClick(View v) {
 
-                                    searchModeSpinner.setSelection(3, true);
+                                    searchModeSpinner.setSelection(1, true);
 
                                     NewBusObjects();
                                     BusSettingsLayout.setVisibility(View.GONE);

@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Set;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -496,11 +497,11 @@ public class Internet {
     }
 
 
-    public static void unJoin() {
+    public static void refresh() {
 
         if (SocketConnected) {
 
-            String dataOut = "{\"action\" : \"unJoin\"}}";
+            String dataOut = "{\"action\" : \"refresh\"}}";
 
             Log.e("websocket", "just logged out");
             ws.send(dataOut);
@@ -623,10 +624,12 @@ public class Internet {
                     routes.get(2) + "\", \"name\" : \"" +
                     driverName + "\", \"lat\" : \"" +
                     center.latitude + "\", \"lng\" : \"" +
-                    center.longitude + ", \"key\" : \"" +
+                    center.longitude + "\", \"key\" : \"" +
                     InfoClasses.Login.key + "\"}}";
 
             ws.send(dataOut);
+            Log.e("websocket", dataOut);
+
             Log.e("websocket", "Created Bus " + busNumber);
 
         } else {
@@ -662,11 +665,12 @@ public class Internet {
 
     }
 
-    public static void joinRoute_AsBus(String busNumber) {
+    public static void joinRoute_AsBus() {
 
         if (SocketConnected) {
 
             String county = InfoClasses.county;
+            String busNumber = InfoClasses.BusInfo.BusNumber;
 
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
@@ -843,7 +847,6 @@ public class Internet {
 
                             if(object.getString("Disconnect").equals("0")) {
                                 thisBus.BusLocation = BusLocation;
-                                thisBus.Route = RouteID;
                                 thisBus.Active = true;
 
 
@@ -853,13 +856,29 @@ public class Internet {
                                     thisBus.BusNumber = BusNumber;
                                 }
 
-                                Log.e("tag", "Updated bus info");
-
                                 if (MainActivity.focus != InfoClasses.countyCenters.get(InfoClasses.county)) {
                                     MainActivity.focus = thisBus.BusLocation;
                                 }
-                            }
-                            if(object.getString("Disconnect").equals("1")) {
+
+                                if(!thisBus.Route.equals(RouteID)){
+                                    thisBus.Route = RouteID;
+
+                                    if(!thisBus.Route.equals(InfoClasses.AdminInfo.N2R.get(BusNumber))){
+
+                                        String oldRoute = InfoClasses.AdminInfo.N2R.get(BusNumber);
+
+                                        if(oldRoute != null){
+                                            InfoClasses.AdminInfo.R2N.remove(oldRoute);
+                                        }
+
+                                        InfoClasses.AdminInfo.R2N.put(RouteID, BusNumber);
+                                        InfoClasses.AdminInfo.N2R.put(BusNumber, RouteID);
+                                    }
+                                }
+                            } else {
+
+                                InfoClasses.AdminInfo.N2R.remove(BusNumber);
+                                InfoClasses.AdminInfo.R2N.remove(RouteID);
 
                                 thisBus.Active = false;
                                 thisBus.Route = null;

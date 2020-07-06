@@ -3,9 +3,7 @@
     <string name="spinner">Spinner</string>
 
     <string-array name="search_modes">
-        <item>Bus Number</item>
-        <item>Bus Route</item>
-        <item>Bus Driver Name</item>
+        <item>Buses</item>
         <item>Add New Bus</item>
 
     </string-array>
