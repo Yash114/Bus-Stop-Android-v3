@@ -249,7 +249,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                 }
                             });
                         }
-                    }, 7500);
+                    }, 1000);
                 } else {
 
                     InfoClasses.BusInfo.disconnectFromBus(getContext());

@@ -77,7 +77,7 @@ public class Internet {
     public Internet() {
     }
 
-    static class ReverseGeoCode extends AsyncTask<Double, Void, JSONObject> {
+    public static class ReverseGeoCode extends AsyncTask<Double, Void, JSONObject> {
 
         public String houseNumber = "";
         public String County = "";
@@ -179,6 +179,7 @@ public class Internet {
                     mAddress_info[3] = Street;
 
                     InfoClasses.MyInfo.Address = mAddress_info[0];
+                    InfoClasses.commitCounty(County);
                     SaveData.SaveMyHomeAddy(mAddress_info[0]);
 
                     Log.i("intern", "Reverse Geocode JSON: Successful");
@@ -192,6 +193,74 @@ public class Internet {
             }
         }
     }
+
+    public static class getCounty extends AsyncTask<Double, Void, JSONObject> {
+
+        @SuppressLint("WrongThread")
+        @Override
+        protected JSONObject doInBackground(Double... coordinates) {
+
+            if (Connected) {
+
+                String str = locationIQ_URL + "?key=" + getLocationIQ_KEY + "&lat=" + coordinates[0] + "&lon=" + coordinates[1] + "&format=json";
+
+                HttpURLConnection urlConn;
+                BufferedReader bufferedReader = null;
+                try {
+                    URL url = new URL(str);
+                    urlConn = (HttpURLConnection) url.openConnection();
+
+                    bufferedReader = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+
+                    StringBuilder stringBuffer = new StringBuilder();
+                    String line;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        stringBuffer.append(line);
+                    }
+
+                    Log.i("intern", "Reverse Geocode: Successful");
+
+                    urlConn.disconnect();
+
+                    return new JSONObject(stringBuffer.toString());
+
+                } catch (Exception ex) {
+
+                    Log.e("intern", "reverseGeocode:" + ex.getMessage());
+
+                    return null;
+                } finally {
+
+                    if (bufferedReader != null) {
+                        try {
+                            bufferedReader.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        return null;
+
+                    }
+                }
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject response) {
+            if (response != null) {
+
+                try {
+                    String county = response.getJSONObject("address").getString("county");
+                    InfoClasses.commitCounty(county.substring(0, county.indexOf(" ")));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 
     public static class GetZonedSchools extends AsyncTask<String, Void, JSONObject> {
 
@@ -462,7 +531,7 @@ public class Internet {
     public static void login() {
 
         String username = InfoClasses.Login.Username;
-        String county = "Henry";
+        String county = InfoClasses.county;
 
         if (SocketConnected) {
             if (username != null) {
@@ -519,7 +588,7 @@ public class Internet {
 
         if (SocketConnected) {
 
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"joinAdmin\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"key\" : \"" +
@@ -588,7 +657,7 @@ public class Internet {
     public static void sendLocations(LatLng latLng, String busRouteID, String busNumber) {
 
         if (SocketConnected) {
-            String county = "Henry";
+            String county = InfoClasses.county;
 
             String dataOut = "{\"action\" : \"updateData\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"routeID\" : \"" +
@@ -970,6 +1039,7 @@ public class Internet {
                         if (object.getInt("exalt") == 1) {
                             InfoClasses.Login.gatheredMode = 1;
                             InfoClasses.BusInfo.BusDriver = object.getString("name");
+                            InfoClasses.Bluetooth.bluetoothAddress = object.getString("address");
 
                         } else {
 
@@ -982,6 +1052,7 @@ public class Internet {
                     } else {
 
                         InfoClasses.Login.ERROR = object.getString("error");
+                        MainActivity.OpenLOGIN();
                         Log.i("tag", "Just UNsuccessfully logged in!");
 
                     }

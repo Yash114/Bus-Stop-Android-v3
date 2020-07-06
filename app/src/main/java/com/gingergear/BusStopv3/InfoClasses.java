@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
@@ -131,7 +132,6 @@ public class InfoClasses {
         public Boolean Active = false;
         public Marker marker;
         public boolean updates = false;
-
         public int counter = 15;
 
         public Buses(String busNumber, LatLng busLocation, String school) {
@@ -357,7 +357,7 @@ public class InfoClasses {
         public static BluetoothAdapter bluetoothAdapter;
         public static BluetoothDevice connectedDevice;
         public static BluetoothGatt bluetoothGatt;
-        private static String BluetoothName = "BT05";
+        public static String bluetoothAddress;
         public static Boolean isConnected = false;
         public static Boolean isSearching = false;
 
@@ -388,9 +388,22 @@ public class InfoClasses {
                 @Override
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
-                    Log.i("Bluetooth", result.getDevice().getName());
 
+                    if (isSearching) {
+                        if (result.getDevice().getAddress().equals(bluetoothAddress)) {
+                            connectedDevice = result.getDevice();
+                            Log.e("Bluetooth", result.getDevice().getAddress());
 
+                            Log.e("Bluetooth", "Bluetooth Device Found");
+
+                            isConnected = true;
+                            isSearching = false;
+
+                            Log.i("Bluetooth", "Successfully Connected to" + BusInfo.BusNumber);
+
+                            return;
+                        }
+                    }
                 }
 
                 @Override
@@ -398,16 +411,14 @@ public class InfoClasses {
                     super.onBatchScanResults(results);
 
                     for (ScanResult result : results) {
-//                        if (result.getDevice().getName() != null) {
-                            Log.e("Bluetooth", "Devices found: " + result.getDevice().getAddress());
-//                        }
+                        Log.e("Bluetooth", "Devices found: " + result.getDevice().getAddress());
                     }
                     if (isSearching) {
 
                         ArrayList<BluetoothDevice> availableDevices = new ArrayList<>();
 
                         for (ScanResult result : results) {
-                            if (result.getDevice().getName() != null) {
+                            if (result.getDevice().getAddress() != null) {
                                 Log.e("Bluetooth", "Devices found: " + result.getDevice().getName());
                                 availableDevices.add(result.getDevice());
                             }
@@ -415,8 +426,7 @@ public class InfoClasses {
 
                         for (BluetoothDevice devices : availableDevices) {
 
-                            Log.i("Bluetooth", devices.getName());
-                            if (devices.getName().equals(BluetoothName)) {
+                            if (devices.getAddress().equals(bluetoothAddress)) {
                                 availableDevices.clear();
                                 connectedDevice = devices;
                                 Log.e("Bluetooth", devices.getAddress());
@@ -477,7 +487,7 @@ public class InfoClasses {
 
             Log.d("Bluetooth", "Bluetooth Scan Initiated");
 
-            BLEscanner.startScan(null, scanSettings.setReportDelay(1500).build(), BLEcallback);
+            BLEscanner.startScan(null, scanSettings.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(), BLEcallback);
 
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -488,7 +498,7 @@ public class InfoClasses {
 
                     isSearching = false;
                 }
-            }, 7500);
+            }, 1000);
         }
     }
 
@@ -592,6 +602,7 @@ public class InfoClasses {
                 if (savedPos != null) {
                     if (savedPos.latitude != 0) {
 
+                        Log.i("Save", SaveData.ReadMySavedAddy());
                         MyInfo.savedLocation = savedPos;
                         MyInfo.CurrentLocation = savedPos;
                         MyInfo.Address = SaveData.ReadMySavedAddy();
@@ -606,9 +617,11 @@ public class InfoClasses {
                         //                                          int[] grantResults)
                         // to handle the case where the user grants the permission. See the documentation
                         // for ActivityCompat#requestPermissions for more details.
+
                         return;
                     }
                     MainActivity.mMap.setMyLocationEnabled(true);
+
                 }
 
 

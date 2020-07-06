@@ -116,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         Internet.CreateWebSocketConnection();
 
-        InfoClasses.commitCounty("Henry");
         menuInflater = getMenuInflater();
 
         checkLocationPermission();
@@ -314,7 +313,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                Toast.makeText(this, "The permission to get BLE location data is required", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "The permission to get BLE location data is required for proper bus tracking for riders and drivers", Toast.LENGTH_SHORT).show();
             } else {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             }
@@ -358,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         saveData = new SaveData(getApplicationContext());
 
         final int temp = SaveData.ReadAppMode();
-
+        Log.i("Save", String.valueOf(temp));
         if (temp != -1) {
 
             if (temp == 2) {
@@ -446,14 +445,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (ContextCompat.checkSelfPermission(this,
                             Manifest.permission.ACCESS_FINE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED) {
+
                         if (mGoogleApiClient == null) {
                             buildGoogleApiClient();
                         }
 
+                        if(InfoClasses.Mode.RIDER() && InfoClasses.MyInfo.savedLocation == null){
+
+                            Log.i("tag", "abuFaoeu bg9u");
+                            mMap.setMyLocationEnabled(true);
+                        }
+
                     }
                 } else {
-//                    Toast.makeText(this, "permission denied",
-//                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "permission denied, Please re-enable to use this app properly",
+                            Toast.LENGTH_LONG).show();
                 }
                 return;
             }

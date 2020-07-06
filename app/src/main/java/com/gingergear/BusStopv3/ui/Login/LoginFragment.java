@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +42,14 @@ public class LoginFragment extends Fragment {
 
         InfoClasses.Mode.ChangeToRiderMode(getContext());
 
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+        }
+        MainActivity.mMap.setMyLocationEnabled(true);
+
+        Internet.getCounty RGC = new Internet.getCounty();
+        RGC.execute(InfoClasses.MyInfo.CurrentLocation.latitude, InfoClasses.MyInfo.CurrentLocation.longitude);
+
         username = root.findViewById(R.id.username);
         password = root.findViewById(R.id.password);
         submitButton = root.findViewById(R.id.submitPASS);
@@ -61,6 +70,8 @@ public class LoginFragment extends Fragment {
 
                 username.setText("");
                 password.setText("");
+
+                Log.i("Bluetooth", InfoClasses.county);
 
                 new Timer().schedule(new TimerTask() {
                     @Override

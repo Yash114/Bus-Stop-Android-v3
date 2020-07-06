@@ -15,8 +15,7 @@ import java.util.Set;
 public class SaveData {
 
     private static Context mContext;
-    private static String File_Name;
-    static String filename = "39r8ybciu1oni0ev2g979ebcu1w";
+    static String filename = "39r8ybciu1oni0ev2g979ebu1w";
 
     public SaveData(Context context) {
 
@@ -126,20 +125,18 @@ public class SaveData {
     public static void SaveAppMode(int mode) {
 
         SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
-        editor.putInt("mode", mode);
+        editor.putInt("TheSavedMode", mode);
 
         editor.apply();
-        Log.i("Save", "Successfully saved: " + mode + "as you default mode");
+        Log.i("Save", "Successfully saved: " + mode + " as you default mode");
 
     }
 
     public static int ReadAppMode() {
 
-        if (mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).contains("mode")) {
-            return mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getInt("mode", -1);
-        }
-
-        return -1;
+        int value = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getInt("TheSavedMode", 0);
+        Log.e("Save", String.valueOf(value));
+        return value;
     }
 
     public static void SaveKEY(String x) {

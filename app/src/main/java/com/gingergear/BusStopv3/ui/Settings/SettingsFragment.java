@@ -71,9 +71,12 @@ public class SettingsFragment extends Fragment {
                     InfoClasses.MyInfo.myBuses.clear();
 
                     MainActivity.mMap.setMyLocationEnabled(true);
-                    SaveData.SaveMyHomePos(new LatLng(0, 0));
                     InfoClasses.MyInfo.savedLocation = null;
                     InfoClasses.MyInfo.CurrentLocation = null;
+                    SaveData.SaveMyHomePos(new LatLng(0, 0));
+                    SaveData.SaveMyHomeAddy("");
+
+
 
                     statusBar.setText("Address is missing");
 
