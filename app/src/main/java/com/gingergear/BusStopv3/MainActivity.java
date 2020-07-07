@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         Internet.CreateWebSocketConnection();
 
+        items.clear();
         items.add(R.id.nav_map);
         items.add(R.id.nav_settings);
         items.add(R.id.nav_myBuses);
@@ -346,6 +347,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        for(int x = 0; x < items.size(); x++) {
+            Log.e("tag", String.valueOf(x));
+            MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(false);
+        }
+
 
         MapFragment.mainActivity = this;
 
@@ -393,11 +399,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void Instantiate_Save_Methods() {
+        Log.e("tag", "doing");
 
         saveData = new SaveData(getApplicationContext());
 
         final int temp = SaveData.ReadAppMode();
-        Log.i("Save", String.valueOf(temp));
 
         if (temp != -1) {
 
@@ -755,7 +761,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         for(int x = 0; x < items.size(); x++) {
-            Log.e("tag", String.valueOf(x));
+            Log.e("tag", String.valueOf(x) + "uabeish");
+            Log.e("tag", MainActivity.activeArray.get(x) ? "yes" : "no");
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(true);
 
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(MainActivity.activeArray.get(x));

@@ -641,7 +641,6 @@ public class InfoClasses {
 
         public static void ChangeToDriverMode(Context context) {
 
-            if (!DRIVER()) {
                 ReadCounty();
                 Internet.refresh();
                 Rider_Driver = DRIVER;
@@ -677,7 +676,6 @@ public class InfoClasses {
 
 
                 Markers.getMarkers(context);
-            }
         }
 
         public static void ChangeToAdminMode(Context context) {
@@ -751,7 +749,6 @@ public class InfoClasses {
         }
 
         private static void changeVisibilityMenuItem(int index, boolean visibility){
-            Log.e("tag", String.valueOf(index));
                 MainActivity.activeArray.set(index, visibility);
 
         }
