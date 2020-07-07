@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
+import com.gingergear.BusStopv3.ui.BusControl.BusControlFragment;
 import com.gingergear.BusStopv3.ui.Map.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -37,13 +38,10 @@ public class Background_Update extends IntentService {
         super("Background_Update");
     }
 
-    @SuppressLint("WrongThread")
     @Override
     protected void onHandleIntent(Intent intent) {
 
         Log.e("Bluetooth", " hi");
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent resultIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "343")
                 .setSmallIcon(R.drawable.bus)
@@ -51,7 +49,6 @@ public class Background_Update extends IntentService {
                 .setContentTitle("Bus Stop")
                 .setContentText("Your Bus: " + InfoClasses.BusInfo.BusNumber + " is currently in route")
                 .setLargeIcon(getBitmapFromVectorDrawable(this, R.mipmap.ic_launcher_round))
-                .setContentIntent(resultIntent)
                 .setPriority(NotificationCompat.DEFAULT_ALL);
 
         builder.build().flags = Notification.FLAG_ONGOING_EVENT;
@@ -64,7 +61,7 @@ public class Background_Update extends IntentService {
 
         if (InfoClasses.Mode.DRIVER()) {
 
-            InfoClasses.Bluetooth.bluetoothGatt = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, false, new BluetoothGattCallback() {
+            InfoClasses.Bluetooth.bluetoothGatt = InfoClasses.Bluetooth.connectedDevice.connectGatt(this, true, new BluetoothGattCallback() {
 
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -196,4 +193,9 @@ public class Background_Update extends IntentService {
         return bitmap;
     }
 
+    @Override
+    public void onDestroy() {
+        Thread.currentThread().interrupt();
+        super.onDestroy();
+    }
 }

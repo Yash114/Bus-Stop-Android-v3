@@ -47,8 +47,10 @@ public class LoginFragment extends Fragment {
         }
         MainActivity.mMap.setMyLocationEnabled(true);
 
-        Internet.getCounty RGC = new Internet.getCounty();
-        RGC.execute(InfoClasses.MyInfo.CurrentLocation.latitude, InfoClasses.MyInfo.CurrentLocation.longitude);
+        if(InfoClasses.MyInfo.CurrentLocation != null) {
+            Internet.getCounty RGC = new Internet.getCounty();
+            RGC.execute(InfoClasses.MyInfo.CurrentLocation.latitude, InfoClasses.MyInfo.CurrentLocation.longitude);
+        }
 
         username = root.findViewById(R.id.username);
         password = root.findViewById(R.id.password);

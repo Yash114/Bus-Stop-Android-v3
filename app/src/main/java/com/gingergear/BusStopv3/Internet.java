@@ -24,6 +24,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -260,7 +262,6 @@ public class Internet {
             }
         }
     }
-
 
     public static class GetZonedSchools extends AsyncTask<String, Void, JSONObject> {
 
@@ -527,7 +528,6 @@ public class Internet {
         }
     }
 
-
     public static void login() {
 
         String username = InfoClasses.Login.Username;
@@ -564,7 +564,6 @@ public class Internet {
         }
 
     }
-
 
     public static void refresh() {
 
@@ -768,6 +767,7 @@ public class Internet {
                     county + "\" , \"busNumber\" : \"" +
                     busNumber + "\"}}";
 
+            Log.e("websocket",dataOut);
             ws.send(dataOut);
         } else {
 
@@ -786,14 +786,16 @@ public class Internet {
             String busNumber = InfoClasses.BusInfo.BusNumber;
             LatLng location = InfoClasses.BusInfo.BusLocation;
 
-            String dataOut = "{\"action\" : \"disconnectBus\" , \"data\" : {\"county\" : \"" +
-                    county + "\" , \"busNumber\" : \"" +
-                    busNumber + "\" , \"lat\" : \"" +
-                    location.latitude + "\" , \"lng\" : \"" +
-                    location.longitude + "\"}}";
-            Log.i("websocket", "Bus exit");
+            if(location != null) {
+                String dataOut = "{\"action\" : \"disconnectBus\" , \"data\" : {\"county\" : \"" +
+                        county + "\" , \"busNumber\" : \"" +
+                        busNumber + "\" , \"lat\" : \"" +
+                        location.latitude + "\" , \"lng\" : \"" +
+                        location.longitude + "\"}}";
+                Log.i("websocket", "Bus exit");
 
-            ws.send(dataOut);
+                ws.send(dataOut);
+            }
         } else {
 
             Log.e("websocket", "ERROR");
@@ -853,7 +855,6 @@ public class Internet {
         }
 
     }
-
 
     public static final class EchoWebSocketListener extends WebSocketListener {
         private static final int NORMAL_CLOSURE_STATUS = 1000;
@@ -1087,6 +1088,8 @@ public class Internet {
         @Override
         public void onFailure(WebSocket webSocket, Throwable t, Response response) {
             Log.e("websocket", "Error : " + t.getMessage());
+            SocketConnected = false;
+
 
         }
     }
@@ -1102,11 +1105,34 @@ public class Internet {
             ws = client.newWebSocket(request, listener);
             client.dispatcher().executorService().shutdown();
             SocketConnected = true;
+            pingingLoop();
         }
     }
 
     public static void CloseWebSocket() {
 
         ws.cancel();
+        SocketConnected = false;
+
+    }
+
+
+    private static void pingingLoop() {
+
+        final Timer timer = new Timer();
+        TimerTask myTask = new TimerTask() {
+            @Override
+            public void run() {
+
+                Log.e("Websocket", "Pinged");
+                if(SocketConnected) {
+                    ws.send("{\"action\" : \"ping\"}");
+                } else {
+                    timer.cancel();
+
+                }
+            }
+        };
+        timer.schedule(myTask, 1000, 600000);
     }
 }

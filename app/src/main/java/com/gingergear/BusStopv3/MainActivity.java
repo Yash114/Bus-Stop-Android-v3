@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
@@ -67,6 +68,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -110,11 +112,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static int numberOfClicks = 0;
 
+    public static ArrayList<Integer> items = new ArrayList<>();
+    public static ArrayList<Boolean> activeArray = new ArrayList<>(Arrays.asList(true,false,false,false,false,false,false));
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Internet.CreateWebSocketConnection();
+
+        items.add(R.id.nav_map);
+        items.add(R.id.nav_settings);
+        items.add(R.id.nav_myBuses);
+        items.add(R.id.nav_busSettings);
+        items.add(R.id.nav_adminDashBoard);
+        items.add(R.id.nav_Text);
+        items.add(R.id.nav_Logout);
+
+        if(InfoClasses.Mode.Rider_Driver != -1){
+
+            switch (InfoClasses.Mode.Rider_Driver) {
+
+                case 0:
+                    InfoClasses.Mode.ChangeToRiderMode(this);
+                    break;
+
+                case 1:
+                    InfoClasses.Mode.ChangeToDriverMode(this);
+                    break;
+
+                case 2:
+                    InfoClasses.Mode.ChangeToAdminMode(this);
+                    break;
+
+            }
+        }
 
         menuInflater = getMenuInflater();
 
@@ -208,12 +240,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
 
                     default:
-                        navigationView.setCheckedItem(R.id.nav_map);
-                        InfoClasses.Mode.ChangeToRiderMode(getApplicationContext());
 
                         FragmentTransaction trans = fragmentManager.beginTransaction();
                         trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
                         trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+
+
+                        new Timer().schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+
+                                        navigationView.setCheckedItem(R.id.nav_map);
+                                        InfoClasses.Mode.ChangeToRiderMode(getApplicationContext());
+                                    }
+                                });
+                            }
+                        }, 100);
+
+
                         go = false;
                 }
 
@@ -234,13 +280,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
         trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
 
-        MainActivity.navigationView.getMenu().getItem(0).setVisible(true);
-        MainActivity.navigationView.getMenu().getItem(1).setVisible(true);
-        MainActivity.navigationView.getMenu().getItem(2).setVisible(true);
-        MainActivity.navigationView.getMenu().getItem(4).setVisible(true);
-        MainActivity.navigationView.getMenu().getItem(3).setVisible(true);
-        MainActivity.navigationView.getMenu().getItem(5).setVisible(true);
-        MainActivity.navigationView.getMenu().getItem(6).setVisible(true);
+
 
         navigationView.setCheckedItem(R.id.nav_map);
 
@@ -358,6 +398,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         final int temp = SaveData.ReadAppMode();
         Log.i("Save", String.valueOf(temp));
+
         if (temp != -1) {
 
             if (temp == 2) {
@@ -368,6 +409,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (temp == 1) {
 
                 InfoClasses.Mode.ChangeToDriverMode(getApplicationContext());
+
             }
 
             if (temp == 0) {
@@ -490,8 +532,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Creates a public instance of the Google map
         mMap = googleMap;
         Instantiate_Save_Methods();
-
-        InfoClasses.Mode.Icons(InfoClasses.Mode.Rider_Driver);
 
         mMap.isTrafficEnabled();
         //Sets various UI options of the Google map
@@ -684,7 +724,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
             }
         };
-        timer.schedule(myTask, 1000, 333);
+        timer.schedule(myTask, 1000, 1000);
 
     }
 
@@ -712,6 +752,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     static public void ModeJustChanged() {
+
+
+        for(int x = 0; x < items.size(); x++) {
+            Log.e("tag", String.valueOf(x));
+            MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(true);
+
+            MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(MainActivity.activeArray.get(x));
+        }
 
         MapFragment.RecreateMapObjects();
         MapFragment.unfocusMap();
@@ -760,7 +808,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         zoom = mMap.getCameraPosition().zoom;
 
-        if (InfoClasses.Status.Map()) {
             if (InfoClasses.Mode.DRIVER()) {
                 if (InfoClasses.BusInfo.AssignedBusRoutes != null) {
 
@@ -786,14 +833,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         //The Routes Have updated!!!
                     }
                 }
-                if (MapFragment.coordAuthenticatior(InfoClasses.BusInfo.BusLocation) || bypass) {
-                    if (InfoClasses.BusInfo.BusLocation != null && InfoClasses.BusInfo.BusLocation.latitude != 0) {
-                        if (InfoClasses.Status.Map()) {
+                if (UpdatesAvailable || bypass) {
+                    UpdatesAvailable = false;
+                }
 
-                            UpdatesAvailable = false;
-                        }
+                if (InfoClasses.Bluetooth.isConnected) {
 
-                        Log.i("tag", InfoClasses.BusInfo.BusLocation.toString());
+                    MapFragment.updatePosition();
+
+                    if (MapFragment.coordAuthenticatior(InfoClasses.BusInfo.BusLocation)) {
 
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(InfoClasses.BusInfo.BusLocation)
@@ -804,24 +852,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-                        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-                            @Override
-                            public void onCameraIdle() {
-                                MapFragment.updatePosition(InfoClasses.BusInfo.marker, InfoClasses.BusInfo.BusLocation);
-                                InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
-                                InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
-                                InfoClasses.BusInfo.marker.setIcon(InfoClasses.Markers.BusBitmap);
-                                InfoClasses.BusInfo.marker.showInfoWindow();
-                                InfoClasses.BusInfo.marker.setVisible(true);
-                                InfoClasses.BusInfo.marker.setTag("myBus");
-                            }
-                        });
 
-                    } else {
-
-                        MapFragment.unfocusMap();
                     }
+                } else {
+
+                    MapFragment.unfocusMap();
                 }
+
             } else if (InfoClasses.Mode.RIDER()) {
 
                 if (InfoClasses.MyInfo.savedLocation == null) {
@@ -902,7 +939,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 if (UpdatesAvailable || bypass) {
 
-                        UpdatesAvailable = false;
+                    UpdatesAvailable = false;
 
 
                     if (bypass || InfoClasses.AdminInfo.updateAllLocations) {
@@ -932,5 +969,3 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-
-}

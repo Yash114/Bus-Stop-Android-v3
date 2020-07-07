@@ -134,10 +134,11 @@ public class SaveData {
 
     public static int ReadAppMode() {
 
-        int value = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getInt("TheSavedMode", 0);
+        int value = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getInt("TheSavedMode", -1);
         Log.e("Save", String.valueOf(value));
         return value;
     }
+
 
     public static void SaveKEY(String x) {
 
@@ -156,20 +157,19 @@ public class SaveData {
         Log.i("tag", j + " :");
         return j;
     }
+    public static void SaveCounty() {
 
-    public static Hashtable<String, String> ReadCounty() {
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).edit();
+        editor.putString("countyStuff", InfoClasses.county);
 
-        SharedPreferences data =  mContext.getSharedPreferences(filename, Context.MODE_PRIVATE);
-
-        if (data.contains("County") && data.contains("State")) {
-
-            Hashtable<String, String> out = new Hashtable<>();
-            out.put("County",data.getString("County", null));
-            out.put("State",data.getString("State", null));
-
-            return out;
-        }
-
-        return null;
+        editor.apply();
     }
+
+    public static String ReadCounty() {
+
+        String j = mContext.getSharedPreferences(filename, Context.MODE_PRIVATE).getString("countyStuff", null);
+        InfoClasses.county = j;
+        return j;
+    }
+
 }

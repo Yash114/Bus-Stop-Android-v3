@@ -72,8 +72,6 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Driver;
-        MainActivity.UpdatesAvailable = true;
-        InfoClasses.Mode.ChangeToDriverMode(getContext());
 
         homeViewModel = ViewModelProviders.of(this).get(BusControlModel.class);
         root = inflater.inflate(R.layout.driver_bus_fragment, container, false);
@@ -234,17 +232,15 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                             requireActivity().runOnUiThread(new Runnable() {
                                 public void run() {
                                     ActionButton.setClickable(true);
-
+                                    Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+                                    v.vibrate(100);
                                     if (InfoClasses.Bluetooth.isConnected) {
                                         ActionButton.setText("Disconnect");
-                                        Internet.disconnectYourBus();
 
-                                        Vibrator v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-                                        v.vibrate(100);
+
                                     } else {
                                         ActionButton.setText("Connect To your Bus");
 
-                                        Toast.makeText(getContext(), "Error Connecting to Bus " + InfoClasses.BusInfo.BusNumber, Toast.LENGTH_LONG).show();
                                     }
                                 }
                             });
@@ -337,12 +333,6 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                         InfoClasses.BusInfo.CurrentRoute = InfoClasses.BusInfo.AssignedBusRoutes.get(index);
                                         Internet.joinRoute_AsBus(InfoClasses.BusInfo.BusNumber, InfoClasses.BusInfo.CurrentRoute);
                                         getContext().startService(BusControlFragment.intent);
-
-                                        InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
-                                        InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
-                                        InfoClasses.BusInfo.marker.setPosition(new LatLng(0,0));
-                                        InfoClasses.BusInfo.marker.setVisible(false);
-                                        InfoClasses.BusInfo.marker.setTag("myBus");
 
                                         if (InfoClasses.BusInfo.AssignedBusRoutes.size() != 0) {
 

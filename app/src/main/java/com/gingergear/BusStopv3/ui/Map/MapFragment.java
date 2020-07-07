@@ -49,7 +49,6 @@ public class MapFragment extends Fragment {
         temp = null;
         Last_Bus_Current_Location = null;
 
-        mapViewModel = ViewModelProviders.of(this).get(MapViewModel.class);
         root = inflater.inflate(R.layout.map_fragment, container, false);
 
         try {
@@ -140,15 +139,9 @@ public class MapFragment extends Fragment {
 
         InfoClasses.MyInfo.marker.setTag("My Location");
 
-        InfoClasses.BusInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                .icon(InfoClasses.Markers.BusBitmap)
-                .position(new LatLng(0, 0))
-                .visible(false));
 
-        if(InfoClasses.Mode.DRIVER()){
-            InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
-            InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
-        }
+
+
 
 //        InfoClasses.BusInfo.marker.setTag("Bus' Location");
 
@@ -192,32 +185,49 @@ public class MapFragment extends Fragment {
         }
     }
 
-    public static void updatePosition(final Marker myMarker, LatLng toPosition) {
+    public static void updatePosition() {
 
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        final long duration = 1000;
+        LatLng toPosition = InfoClasses.BusInfo.BusLocation;
 
-        final BounceInterpolator interpolator = new BounceInterpolator();
-        myMarker.setVisible(true);
+        if (toPosition != null) {
+            if (InfoClasses.BusInfo.marker == null) {
 
-        double Lat = toPosition.latitude - myMarker.getPosition().latitude;
-        double Lng = toPosition.longitude - myMarker.getPosition().longitude;
-        final LatLng begin = myMarker.getPosition();
-        final LatLng distanceCoor = new LatLng(Lat, Lng);
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+                InfoClasses.BusInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
+                        .icon(InfoClasses.Markers.BusBitmap)
+                        .position(InfoClasses.BusInfo.BusLocation)
+                        .visible(true));
 
-                myMarker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
-
-                if (t > 0.0) {
-                    // Post again 16ms later.
-                    handler.postDelayed(this, 16);
-                }
+                InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
+                InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
             }
-        });
+
+
+            final Handler handler = new Handler();
+            final long start = SystemClock.uptimeMillis();
+            final long duration = 1000;
+
+            final BounceInterpolator interpolator = new BounceInterpolator();
+            InfoClasses.BusInfo.marker.setVisible(true);
+            InfoClasses.BusInfo.marker.showInfoWindow();
+
+            double Lat = toPosition.latitude - InfoClasses.BusInfo.marker.getPosition().latitude;
+            double Lng = toPosition.longitude - InfoClasses.BusInfo.marker.getPosition().longitude;
+            final LatLng begin = InfoClasses.BusInfo.marker.getPosition();
+            final LatLng distanceCoor = new LatLng(Lat, Lng);
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    long elapsed = SystemClock.uptimeMillis() - start;
+                    double t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+
+                    InfoClasses.BusInfo.marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
+
+                    if (t > 0.0) {
+                        // Post again 16ms later.
+                        handler.postDelayed(this, 16);
+                    }
+                }
+            });
+        }
     }
 }

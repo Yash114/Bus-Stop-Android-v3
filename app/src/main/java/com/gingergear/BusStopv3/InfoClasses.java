@@ -11,6 +11,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteAccessPermException;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
@@ -47,7 +48,9 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.gingergear.BusStopv3.SaveData.ReadCounty;
 import static com.gingergear.BusStopv3.SaveData.ReadMySavedPos;
+import static com.gingergear.BusStopv3.SaveData.SaveCounty;
 
 public class InfoClasses {
 
@@ -60,6 +63,7 @@ public class InfoClasses {
         countyCenters.put("Henry", new LatLng(33.4479112, -84.1479229));
 
         MainActivity.focus = InfoClasses.countyCenters.get(InfoClasses.county);
+        SaveCounty();
 
     }
 
@@ -125,7 +129,7 @@ public class InfoClasses {
 
     public class Buses {
 
-        public LatLng BusLocation = new LatLng(0, 0);
+        public LatLng BusLocation;
         public String School;
         public String BusNumber;
         public String Route = "null";
@@ -201,33 +205,36 @@ public class InfoClasses {
             }
 
 
-            final Handler handler = new Handler();
-            final long start = SystemClock.uptimeMillis();
-            final long duration = 1000;
+            if (BusLocation != null) {
+                final Handler handler = new Handler();
+                final long start = SystemClock.uptimeMillis();
+                final long duration = 1000;
 
-            final BounceInterpolator interpolator = new BounceInterpolator();
-            marker.setVisible(true);
+                final BounceInterpolator interpolator = new BounceInterpolator();
+                marker.setVisible(true);
 
-            double Lat = BusLocation.latitude - marker.getPosition().latitude;
-            double Lng = BusLocation.longitude - marker.getPosition().longitude;
-            final LatLng begin = marker.getPosition();
-            final LatLng distanceCoor = new LatLng(Lat, Lng);
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    long elapsed = SystemClock.uptimeMillis() - start;
-                    float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
+                double Lat = BusLocation.latitude - marker.getPosition().latitude;
+                double Lng = BusLocation.longitude - marker.getPosition().longitude;
+                final LatLng begin = marker.getPosition();
+                final LatLng distanceCoor = new LatLng(Lat, Lng);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        long elapsed = SystemClock.uptimeMillis() - start;
+                        float t = Math.max(1 - interpolator.getInterpolation((float) elapsed / duration), 0);
 
-                    marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
+                        marker.setPosition(new LatLng(begin.latitude + elapsed * (distanceCoor.latitude / duration), begin.longitude + elapsed * (distanceCoor.longitude / duration)));
 
-                    if (t > 0.0) {
-                        // Post again 16ms later.
-                        handler.postDelayed(this, 16);
+                        if (t > 0.0) {
+                            // Post again 16ms later.
+                            handler.postDelayed(this, 16);
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                marker.setPosition(BusLocation);
+            }
         }
-
     }
 
     public static class AdminInfo {
@@ -268,7 +275,7 @@ public class InfoClasses {
     public static class BusInfo {
 
         public static String BusNumber = "14-71";
-        public static LatLng BusLocation = new LatLng(0, 0);
+        public static LatLng BusLocation ;
         public static String BusDriver;
         public static ArrayList<String> AssignedBusRoutes;
         public static ArrayList<String> CompletedBusRoutes = new ArrayList<>();
@@ -378,7 +385,6 @@ public class InfoClasses {
         }
 
         private static void connect() {
-            isSearching = true;
             isConnected = false;
             ScanSettings.Builder scanSettings = new ScanSettings.Builder();
             final BluetoothLeScanner BLEscanner = bluetoothAdapter.getBluetoothLeScanner();
@@ -389,7 +395,7 @@ public class InfoClasses {
                 public void onScanResult(int callbackType, ScanResult result) {
                     super.onScanResult(callbackType, result);
 
-                    if (isSearching) {
+                    if (!isConnected) {
                         if (result.getDevice().getAddress().equals(bluetoothAddress)) {
                             connectedDevice = result.getDevice();
                             Log.e("Bluetooth", result.getDevice().getAddress());
@@ -397,7 +403,6 @@ public class InfoClasses {
                             Log.e("Bluetooth", "Bluetooth Device Found");
 
                             isConnected = true;
-                            isSearching = false;
 
                             Log.i("Bluetooth", "Successfully Connected to" + BusInfo.BusNumber);
 
@@ -413,7 +418,7 @@ public class InfoClasses {
                     for (ScanResult result : results) {
                         Log.e("Bluetooth", "Devices found: " + result.getDevice().getAddress());
                     }
-                    if (isSearching) {
+                    if (!isConnected) {
 
                         ArrayList<BluetoothDevice> availableDevices = new ArrayList<>();
 
@@ -434,7 +439,6 @@ public class InfoClasses {
                                 Log.e("Bluetooth", "Bluetooth Device Found");
 
                                 isConnected = true;
-                                isSearching = false;
 
                                 Log.i("Bluetooth", "Successfully Connected to" + BusInfo.BusNumber);
                                 return;
@@ -443,7 +447,6 @@ public class InfoClasses {
                         }
 
                         Log.e("Bluetooth", "Unsuccessfully Connected to " + BusInfo.BusNumber);
-                        isSearching = false;
 
                     }
                 }
@@ -496,7 +499,6 @@ public class InfoClasses {
                     BLEscanner.stopScan(BLEcallback);
                     Log.e("Bluetooth", "Bluetooth Scan Complete");
 
-                    isSearching = false;
                 }
             }, 1000);
         }
@@ -575,13 +577,16 @@ public class InfoClasses {
 
             if (!RIDER()) {
 
+                ReadCounty();
                 Internet.refresh();
+                Icons(RIDER);
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
 
 
                 MainActivity.UpdatesAvailable = true;
                 Rider_Driver = RIDER;
+
                 SaveData.SaveAppMode(RIDER);
 
                 if (SaveData.ReadMySavedRoutes() != null) {
@@ -637,10 +642,9 @@ public class InfoClasses {
         public static void ChangeToDriverMode(Context context) {
 
             if (!DRIVER()) {
-
+                ReadCounty();
                 Internet.refresh();
                 Rider_Driver = DRIVER;
-                MainActivity.ModeJustChanged();
                 SaveData.SaveAppMode(DRIVER);
                 Icons(DRIVER);
 
@@ -669,20 +673,21 @@ public class InfoClasses {
                 MainActivity.mMap.getUiSettings().setScrollGesturesEnabled(false);
                 MainActivity.mMap.getUiSettings().setZoomGesturesEnabled(false);
 
+                MainActivity.ModeJustChanged();
+
+
                 Markers.getMarkers(context);
-                BusInfo.marker.setIcon(Markers.BusBitmap);
-
-
             }
         }
 
         public static void ChangeToAdminMode(Context context) {
 
             if (!ADMIN()) {
-
+                ReadCounty();
                 Internet.refresh();
                 Rider_Driver = ADMIN;
                 BusInfo.disconnectFromBus(context);
+                MainActivity.focus = countyCenters.get(county);
 
                 SaveData.SaveAppMode(2);
                 Icons(ADMIN);
@@ -713,13 +718,6 @@ public class InfoClasses {
         }
 
         public static void Icons(int Mode) {
-
-            if(icons.size() == 0){
-
-                for(int x = 0; x < 7; x++){
-                    icons.add(MainActivity.navigationView.getMenu().getItem(x));
-                }
-            }
 
             if (Mode == ADMIN) {
                 changeVisibilityMenuItem(1, false);
@@ -753,12 +751,9 @@ public class InfoClasses {
         }
 
         private static void changeVisibilityMenuItem(int index, boolean visibility){
-            if(icons.get(index).isVisible() != visibility) {
-                icons.get(index).setVisible(visibility);
+            Log.e("tag", String.valueOf(index));
+                MainActivity.activeArray.set(index, visibility);
 
-                Log.i("tag", icons.get(index).getTitle().toString() + ": " + (icons.get(index).isVisible() ? "vis" : "invis"));
-
-            }
         }
     }
 }
