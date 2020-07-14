@@ -60,6 +60,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
@@ -108,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static float zoom = 10.3f;
 
     private static int numberOfClicks = 0;
+    private Context context;
 
     public static ArrayList<Integer> items = new ArrayList<>();
     public static ArrayList<Boolean> activeArray = new ArrayList<>(Arrays.asList(true,false,false,false,false,false,false));
@@ -117,8 +119,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Internet.CreateWebSocketConnection();
-
+        InfoClasses.ToastMessages.init(this);
         FirebaseNotifications.initialize();
+        context = getBaseContext();
 
         items.clear();
         items.add(R.id.nav_map);
@@ -197,16 +200,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         @Override
                                         public void run() {
                                             FirebaseNotifications.sendBusAlert();
-                                            Looper.prepare();
-                                            Toast.makeText(getApplicationContext(), "Alert Sent to Operators, Radio Response Inbound", Toast.LENGTH_LONG).show();
 
                                         }
                                     }, 500);
                                 } else {
 
                                     FirebaseNotifications.sendBusAlert_noLocation();
-                                    Looper.prepare();
-                                    Toast.makeText(getApplicationContext(), "Error Retrieving Location, Alert Sent to Operators, Radio Response Inbound", Toast.LENGTH_LONG).show();
 
                                 }
                             }
@@ -224,8 +223,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         @Override
                                         public void run() {
                                             FirebaseNotifications.sendBusAlert();
-                                            Looper.prepare();
-                                            Toast.makeText(getApplicationContext(), "Alert Sent to Operators, Radio Response Inbound", Toast.LENGTH_LONG).show();
+
 
                                         }
                                     }, 500);
@@ -770,6 +768,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         updates(true);
         StartRefresh();
 
+        if(InfoClasses.Mode.RIDER()){
+
+
+        } else if(InfoClasses.Mode.DRIVER()){
+
+            InfoClasses.BusInfo.marker = googleMap.addMarker(new MarkerOptions()
+                    .icon(InfoClasses.BusInfo.CurrentRoute == null ? InfoClasses.Markers.BusBitmapGREY : InfoClasses.Markers.BusBitmap)
+                    .position(InfoClasses.countyLocation())
+                    .title("My Current Bus Location")
+                    .snippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute)
+                    .visible(true));
+
+            Log.i("tag", "im here");
+        } else {
+
+            InfoClasses.AdminInfo.recreateMarkers();
+        }
     }
 
     public boolean checkLocationPermission() {

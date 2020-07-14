@@ -17,6 +17,7 @@ import com.gingertech.BusStopv3.MainActivity;
 import com.gingertech.BusStopv3.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -191,25 +192,15 @@ public class MapFragment extends Fragment {
         LatLng toPosition = InfoClasses.BusInfo.BusLocation;
 
         if (toPosition != null) {
-            if (InfoClasses.BusInfo.marker == null) {
 
-                InfoClasses.BusInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                        .icon(InfoClasses.Markers.BusBitmap)
-                        .position(InfoClasses.BusInfo.BusLocation)
-                        .visible(true));
-
-                InfoClasses.BusInfo.marker.setTitle("My Current Bus Location");
-                InfoClasses.BusInfo.marker.setSnippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute);
-            }
-
+            InfoClasses.BusInfo.marker.setVisible(true);
+            InfoClasses.BusInfo.marker.showInfoWindow();
 
             final Handler handler = new Handler();
             final long start = SystemClock.uptimeMillis();
             final long duration = 1000;
 
             final BounceInterpolator interpolator = new BounceInterpolator();
-            InfoClasses.BusInfo.marker.setVisible(true);
-            InfoClasses.BusInfo.marker.showInfoWindow();
 
             double Lat = toPosition.latitude - InfoClasses.BusInfo.marker.getPosition().latitude;
             double Lng = toPosition.longitude - InfoClasses.BusInfo.marker.getPosition().longitude;

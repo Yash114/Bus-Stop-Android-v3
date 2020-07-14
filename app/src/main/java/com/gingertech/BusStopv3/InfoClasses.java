@@ -64,6 +64,19 @@ public class InfoClasses {
         return InfoClasses.countyCenters.get(InfoClasses.county);
     }
 
+    public static class ToastMessages
+    {
+
+        static Toast sendingBusError;
+        static Toast sendingBusError_noloc;
+
+        static void init(Context context){
+
+            sendingBusError = Toast.makeText(context, "Alert Sent to Operators, Radio Response Inbound", Toast.LENGTH_LONG);
+            sendingBusError_noloc = Toast.makeText(context, "Error getting Location, Alert Sent to Operators, Radio Response Inbound", Toast.LENGTH_LONG);
+        }
+    }
+
     public static class Login {
 
         public static String Username;
@@ -83,13 +96,14 @@ public class InfoClasses {
         }
     }
 
-
     public static class Markers {
 
         public static BitmapDescriptor MyBitmap;
         public static BitmapDescriptor BusBitmap;
         public static BitmapDescriptor BusBitmapGREYs;
         public static BitmapDescriptor BusBitmaps;
+        public static BitmapDescriptor BusBitmapGREY;
+
 
 
         public static void getMarkers(Context context) {
@@ -98,11 +112,13 @@ public class InfoClasses {
             Bitmap BusBitmapi = getBitmapFromVectorDrawable(context, R.drawable.bus);
             Bitmap BusGBitmai = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24);
             Bitmap BusGBitmapi = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24_grey);
+            Bitmap BusGsBitmapi = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24_greys);
 
 
             MyBitmap = BitmapDescriptorFactory.fromBitmap(MyBitmapsi);
             BusBitmap = BitmapDescriptorFactory.fromBitmap(BusBitmapi);
-            BusBitmapGREYs = BitmapDescriptorFactory.fromBitmap(BusGBitmapi);
+            BusBitmapGREYs = BitmapDescriptorFactory.fromBitmap(BusGsBitmapi);
+            BusBitmapGREY = BitmapDescriptorFactory.fromBitmap(BusGBitmapi);
             BusBitmaps = BitmapDescriptorFactory.fromBitmap(BusGBitmai);
 
 
@@ -305,7 +321,6 @@ public class InfoClasses {
 
             });
         }
-
     }
 
     public static class MyInfo {
@@ -701,6 +716,7 @@ public class InfoClasses {
                         Internet.join_AsAdmin();
                         Internet.retrieveAllLocations();
                         Internet.retrieveAllRoutes();
+                        Internet.retrieveBusErrors();
                     }
                 }, 1000);
 

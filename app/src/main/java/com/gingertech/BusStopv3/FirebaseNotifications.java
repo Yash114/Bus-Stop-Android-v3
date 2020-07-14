@@ -76,7 +76,6 @@ public class FirebaseNotifications extends FirebaseMessagingService {
         data.put("token", token);
         data.put("county", InfoClasses.county);
 
-
         mFunctions
                 .getHttpsCallable("addDeviceToAdminGroup")
                 .call(data)
@@ -116,13 +115,21 @@ public class FirebaseNotifications extends FirebaseMessagingService {
     public static void sendBusAlert(){
 
         // Create the arguments to the callable function.
+
+        String time  = Calendar.getInstance().getTime().toString();
+        String addy = InfoClasses.BusInfo.LastGatheredAddress;
+
+        Internet.sendBusError(time, addy);
+        InfoClasses.ToastMessages.sendingBusError.show();
+
         Map<String, String> data = new HashMap<>();
         data.put("token", token);
         data.put("county", InfoClasses.county);
         data.put("currentRoute", InfoClasses.BusInfo.CurrentRoute);
-        data.put("addy", InfoClasses.BusInfo.LastGatheredAddress);
-        data.put("time", Calendar.getInstance().getTime().toString());
+        data.put("addy", addy);
+        data.put("time", time );
         data.put("busNumber", InfoClasses.BusInfo.BusNumber);
+
 
         mFunctions
                 .getHttpsCallable("saveAndSendBusAlert")
@@ -150,6 +157,8 @@ public class FirebaseNotifications extends FirebaseMessagingService {
         data.put("addy", "unresolved");
         data.put("time", Calendar.getInstance().getTime().toString());
         data.put("busNumber", InfoClasses.BusInfo.BusNumber);
+
+        InfoClasses.ToastMessages.sendingBusError_noloc.show();
 
         mFunctions
                 .getHttpsCallable("saveAndSendBusAlert")

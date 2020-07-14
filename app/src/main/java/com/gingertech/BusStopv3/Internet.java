@@ -658,6 +658,29 @@ public class Internet {
         }
     }
 
+    public static void retrieveBusErrors() {
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+
+            String dataOut = "{\"action\" : \"getBusErrors\", \"data\" : {\"county\" : \"" +
+                    county + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
+
+            ws.send(dataOut);
+            Log.e("websocket", "Recieving all county locations");
+
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+            retrieveBusErrors();
+
+
+        }
+    }
+
     //Bus Functions
     public static void sendLocations(LatLng latLng, String busRouteID, String busNumber) {
 
@@ -677,10 +700,35 @@ public class Internet {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
+        }
+
+    }
+
+    public static void sendBusError(String Addy, String time){
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+            String busNumber = InfoClasses.BusInfo.BusNumber;
+            String busRouteID = InfoClasses.BusInfo.CurrentRoute;
+
+            String dataOut = "{\"action\" : \"sendBusError\" , \"data\" : {\"county\" : \"" +
+                    county + "\" , \"routeID\" : \"" +
+                    busRouteID + "\" , \"location\" : \"" +
+                    Addy + "\" , \"time\" : \"" +
+                    time + "\" , \"busNumber\" : \"" +
+                    busNumber + "\"}}";
+
+            Log.e("websocket", dataOut);
+            ws.send(dataOut);
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+            sendBusError(Addy, time);
 
 
         }
-
     }
 
     public static void addBus(String busNumber, String driverName, ArrayList<String> routes) {

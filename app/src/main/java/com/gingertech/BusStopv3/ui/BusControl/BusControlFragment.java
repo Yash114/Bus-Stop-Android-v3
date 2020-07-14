@@ -234,6 +234,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                     v.vibrate(100);
                                     if (InfoClasses.Bluetooth.isConnected) {
                                         ActionButton.setText("Disconnect");
+                                        getContext().startService(BusControlFragment.intent);
 
 
                                     } else {
@@ -330,7 +331,6 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                         EndRouteButton.setVisibility(View.VISIBLE);
                                         InfoClasses.BusInfo.CurrentRoute = InfoClasses.BusInfo.AssignedBusRoutes.get(index);
                                         Internet.joinRoute_AsBus(InfoClasses.BusInfo.BusNumber, InfoClasses.BusInfo.CurrentRoute);
-                                        getContext().startService(BusControlFragment.intent);
 
                                         if (InfoClasses.BusInfo.AssignedBusRoutes.size() != 0) {
 
