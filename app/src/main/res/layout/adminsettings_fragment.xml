@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF"
     android:orientation="vertical"
-    tools:context="com.gingergear.BusStopv3.ui.AdminPanel.AdminPanelFragment">
+    tools:context="com.gingertech.BusStopv3.ui.AdminPanel.AdminPanelFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

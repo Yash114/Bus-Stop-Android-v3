@@ -7,7 +7,6 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
 
-
     <fragment
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
@@ -79,5 +78,15 @@
             android:id="@+id/mapButton" />
 
     </RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/panicButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="32dp"
+        android:layout_marginLeft="20dp"
+        android:scaleType="center"
+        android:background="@drawable/ic_baseline_warning_24"/>
 
 </RelativeLayout>

@@ -7,49 +7,49 @@
 
         <fragment
             android:id="@+id/nav_empty"
-            android:name="com.gingergear.BusStopv3.ui.empty"
+            android:name="com.gingertech.BusStopv3.ui.empty"
             android:label="empty"
             tools:layout="@layout/empty" />
 
         <fragment
             android:id="@+id/nav_map"
-            android:name="com.gingergear.BusStopv3.ui.Map.MapFragment"
+            android:name="com.gingertech.BusStopv3.ui.Map.MapFragment"
             android:label="@string/menu_map"
             tools:layout="@layout/map_fragment" />
 
         <fragment
             android:id="@+id/nav_settings"
-            android:name="com.gingergear.BusStopv3.ui.Settings.SettingsFragment"
+            android:name="com.gingertech.BusStopv3.ui.Settings.SettingsFragment"
             android:label="@string/menu_settings"
             tools:layout="@layout/settings_fragment" />
 
         <fragment
             android:id="@+id/nav_myBuses"
-            android:name="com.gingergear.BusStopv3.ui.RiderBus.RiderFragment"
+            android:name="com.gingertech.BusStopv3.ui.RiderBus.RiderFragment"
             android:label="@string/menu_riderbus"
             tools:layout="@layout/rider_bus_fragment" />
 
         <fragment
             android:id="@+id/nav_busSettings"
-            android:name="com.gingergear.BusStopv3.ui.BusControl.BusControlFragment"
+            android:name="com.gingertech.BusStopv3.ui.BusControl.BusControlFragment"
             android:label="@string/menu_driverbus"
             tools:layout="@layout/driver_bus_fragment" />
 
         <fragment
             android:id="@+id/nav_adminDashBoard"
-            android:name="com.gingergear.BusStopv3.ui.AdminPanel.AdminPanelFragment"
+            android:name="com.gingertech.BusStopv3.ui.AdminPanel.AdminPanelFragment"
             android:label="@string/menu_admincontrol"
             tools:layout="@layout/adminsettings_fragment" />
 
         <fragment
             android:id="@+id/nav_Logout"
-            android:name="com.gingergear.BusStopv3.ui.empty"
+            android:name="com.gingertech.BusStopv3.ui.empty"
             android:label="Logout"
             tools:layout="@layout/empty" />
 
         <fragment
             android:id="@+id/nav_Text"
-            android:name="com.gingergear.BusStopv3.ui.empty"
+            android:name="com.gingertech.BusStopv3.ui.empty"
             android:label="Comms."
             tools:layout="@layout/empty" />
 

@@ -1,0 +1,135 @@
+{
+  "project_info": {
+    "project_number": "646341543991",
+    "firebase_url": "https://bus-stop-5acf4.firebaseio.com",
+    "project_id": "bus-stop-5acf4",
+    "storage_bucket": "bus-stop-5acf4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:646341543991:android:ca4670c2d2d54563e1d7b2",
+        "android_client_info": {
+          "package_name": "com.gingergear.BusStopv3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "646341543991-fc3dp4ip60r4tb7ecjtdb3lmop742l6t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gingergear.BusStopv3",
+            "certificate_hash": "c498b542b9becd0b1aac0d1ef20f7c25b667212e"
+          }
+        },
+        {
+          "client_id": "646341543991-nlbbelatkuvbncc6afjv17q0lvqpp0l7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Stl1yDHNJl3dqEhDpoav8vbyVmzgpHg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "646341543991-nlbbelatkuvbncc6afjv17q0lvqpp0l7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "646341543991-mech9bb1bjdel8konudurtnve0gq3ovd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gingergear.BusStopv3"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:646341543991:android:344ac64fe3e0cce6e1d7b2",
+        "android_client_info": {
+          "package_name": "com.gingertech.BusStopv3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "646341543991-a1qav78eful40b3b3l4krt5uiuo8a9g3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gingertech.BusStopv3",
+            "certificate_hash": "c498b542b9becd0b1aac0d1ef20f7c25b667212e"
+          }
+        },
+        {
+          "client_id": "646341543991-nlbbelatkuvbncc6afjv17q0lvqpp0l7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Stl1yDHNJl3dqEhDpoav8vbyVmzgpHg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "646341543991-nlbbelatkuvbncc6afjv17q0lvqpp0l7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "646341543991-mech9bb1bjdel8konudurtnve0gq3ovd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gingergear.BusStopv3"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:646341543991:android:f87292052fd9d52fe1d7b2",
+        "android_client_info": {
+          "package_name": "com.gingertech.busstopv3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "646341543991-nlbbelatkuvbncc6afjv17q0lvqpp0l7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Stl1yDHNJl3dqEhDpoav8vbyVmzgpHg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "646341543991-nlbbelatkuvbncc6afjv17q0lvqpp0l7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "646341543991-mech9bb1bjdel8konudurtnve0gq3ovd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.gingergear.BusStopv3"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

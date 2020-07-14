@@ -1,11 +1,12 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.gingergear.BusStopv3"
+        applicationId "com.gingertech.BusStopv3"
         minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
@@ -32,6 +33,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment:2.2.2'
     implementation 'androidx.navigation:navigation-ui:2.2.2'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'com.google.firebase:firebase-messaging:20.2.3'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -45,4 +47,6 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'org.apache.commons:commons-lang3:3.6'
     api 'org.jsoup:jsoup:1.12.1'
+    implementation 'com.google.firebase:firebase-functions:19.0.2'
+
 }
