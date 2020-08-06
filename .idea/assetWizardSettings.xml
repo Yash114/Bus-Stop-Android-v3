@@ -33,9 +33,10 @@
                         </option>
                         <option name="values">
                           <map>
+                            <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="ffff00" />
-                            <entry key="outputName" value="ic_baseline_warning_24" />
-                            <entry key="sourceFile" value="$PROJECT_DIR$/../BusStop-Pictures/topv2-01.svg" />
+                            <entry key="outputName" value="ic_bus_iconnotactive" />
+                            <entry key="sourceFile" value="$PROJECT_DIR$/../BusStop-Pictures/bus-iconNotActive.svg" />
                           </map>
                         </option>
                       </PersistentState>

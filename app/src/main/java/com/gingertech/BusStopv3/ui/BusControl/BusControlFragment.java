@@ -61,8 +61,6 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
 
     private static Boolean active = true;
 
-    public static View root;
-
     public static Intent intent;
 
     private static Timer timer;
@@ -72,7 +70,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.Driver;
 
         homeViewModel = ViewModelProviders.of(this).get(BusControlModel.class);
-        root = inflater.inflate(R.layout.driver_bus_fragment, container, false);
+        View root = inflater.inflate(R.layout.driver_bus_fragment, container, false);
 
         intent = new Intent(getContext(), Background_Update.class);
         active = true;

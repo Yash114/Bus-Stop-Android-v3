@@ -30,8 +30,6 @@ import java.util.TimerTask;
 
 public class LoginFragment extends Fragment {
 
-    View root;
-
     private EditText username;
     private EditText password;
     private Button submitButton;
@@ -41,7 +39,7 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         InfoClasses.Status.ActiveFragment = InfoClasses.Status.LOGIN;
-        root = inflater.inflate(R.layout.login_fragment, container, false);
+        View root = inflater.inflate(R.layout.login_fragment, container, false);
 
         activity = requireActivity();
         InfoClasses.Mode.ChangeToRiderMode(getContext());

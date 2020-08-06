@@ -43,6 +43,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.gingertech.BusStopv3.ui.AdminPanel.AdminPanelFragment;
 import com.gingertech.BusStopv3.ui.BusControl.BusControlFragment;
+import com.gingertech.BusStopv3.ui.Comms.AdminComms;
 import com.gingertech.BusStopv3.ui.Login.LoginFragment;
 import com.gingertech.BusStopv3.ui.Map.MapFragment;
 import com.gingertech.BusStopv3.ui.RiderBus.RiderFragment;
@@ -109,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static float zoom = 10.3f;
 
     private static int numberOfClicks = 0;
-    private Context context;
 
     public static ArrayList<Integer> items = new ArrayList<>();
     public static ArrayList<Boolean> activeArray = new ArrayList<>(Arrays.asList(true,false,false,false,false,false,false));
@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Internet.CreateWebSocketConnection();
         InfoClasses.ToastMessages.init(this);
         FirebaseNotifications.initialize();
-        context = getBaseContext();
 
         items.clear();
         items.add(R.id.nav_map);
@@ -192,10 +191,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
-                                RGC.execute(InfoClasses.BusInfo.BusLocation.latitude, InfoClasses.BusInfo.BusLocation.longitude);
-
                                 if(InfoClasses.BusInfo.BusLocation != null) {
+                                    Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
+                                    RGC.execute(InfoClasses.BusInfo.BusLocation.latitude, InfoClasses.BusInfo.BusLocation.longitude);
+
                                     new Timer().schedule(new TimerTask() {
                                         @Override
                                         public void run() {
@@ -283,9 +282,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switch (Title) {
 
                     case ("Main Map"):
-                        ContainerViewID = new MapFragment();
-                        fragmentID = R.id.nav_map;
-                        ModeJustChanged();
+                        mapButton.callOnClick();
 
                         break;
 
@@ -310,6 +307,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     case ("Admin Dashboard Settings"):
                         ContainerViewID = new AdminPanelFragment();
                         fragmentID = R.id.nav_adminDashBoard;
+
+                        break;
+
+                    case ("Comms."):
+                        if(InfoClasses.Mode.ADMIN()) {
+                            ContainerViewID = new AdminComms();
+                            fragmentID = R.id.nav_adminDashBoard;
+                        } else {
+
+                        }
 
                         break;
 
@@ -673,20 +680,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.setMyLocationEnabled(false);
 
+        MainActivity.mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+
+                if (!InfoClasses.Mode.RIDER()) {
+
+                    markerSelected = false;
+                    focus = InfoClasses.countyCenters.get(InfoClasses.county);
+                } else {
+
+                    FragmentTransaction trans = fragmentManager.beginTransaction();
+                    trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
+                    trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
+                }
+            }
+        });
+
         if (InfoClasses.Mode.RIDER()) {
 
             if (InfoClasses.MyInfo.savedLocation == null) {
                 mMap.setMyLocationEnabled(true);
             }
-
-            MainActivity.mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-                @Override
-                public void onMapClick(LatLng latLng) {
-
-                    markerSelected = false;
-                    focus = InfoClasses.countyCenters.get(InfoClasses.county);
-                }
-            });
 
             MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override

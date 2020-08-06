@@ -64,8 +64,7 @@ public class InfoClasses {
         return InfoClasses.countyCenters.get(InfoClasses.county);
     }
 
-    public static class ToastMessages
-    {
+    public static class ToastMessages {
 
         static Toast sendingBusError;
         static Toast sendingBusError_noloc;
@@ -99,27 +98,39 @@ public class InfoClasses {
     public static class Markers {
 
         public static BitmapDescriptor MyBitmap;
+        public static BitmapDescriptor MyBitmapGREY;
+
         public static BitmapDescriptor BusBitmap;
-        public static BitmapDescriptor BusBitmapGREYs;
-        public static BitmapDescriptor BusBitmaps;
         public static BitmapDescriptor BusBitmapGREY;
+        public static BitmapDescriptor BusBitmapERROR;
 
-
+        static int width = 70;
+        static int height = 95;
 
         public static void getMarkers(Context context) {
 
-            Bitmap MyBitmapsi = getBitmapFromVectorDrawable(context, R.drawable.kid);
-            Bitmap BusBitmapi = getBitmapFromVectorDrawable(context, R.drawable.bus);
-            Bitmap BusGBitmai = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24);
-            Bitmap BusGBitmapi = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24_grey);
-            Bitmap BusGsBitmapi = getBitmapFromVectorDrawable(context, R.drawable.ic_baseline_directions_bus_24_greys);
+
+            Bitmap MyBitmap1 = Bitmap.createScaledBitmap(
+                    getBitmapFromVectorDrawable(context, R.drawable.ic_user_icon), width, height, true);
+
+            Bitmap MyBitmapGREY1 = Bitmap.createScaledBitmap(
+                    getBitmapFromVectorDrawable(context, R.drawable.ic_user_iconnotactive), width, height, true);
+
+            Bitmap BusBitmap1 = Bitmap.createScaledBitmap(
+                    getBitmapFromVectorDrawable(context, R.drawable.ic_bus_iconnormal), width, height, true);
+
+            Bitmap BusBitmapGREY1 = Bitmap.createScaledBitmap(
+                    getBitmapFromVectorDrawable(context, R.drawable.ic_bus_iconnotactive), width, height, true);
+
+            Bitmap BusBitmapERROR1 = Bitmap.createScaledBitmap(
+                    getBitmapFromVectorDrawable(context, R.drawable.ic_bus_iconerror), width, height, true);
 
 
-            MyBitmap = BitmapDescriptorFactory.fromBitmap(MyBitmapsi);
-            BusBitmap = BitmapDescriptorFactory.fromBitmap(BusBitmapi);
-            BusBitmapGREYs = BitmapDescriptorFactory.fromBitmap(BusGsBitmapi);
-            BusBitmapGREY = BitmapDescriptorFactory.fromBitmap(BusGBitmapi);
-            BusBitmaps = BitmapDescriptorFactory.fromBitmap(BusGBitmai);
+            MyBitmap = BitmapDescriptorFactory.fromBitmap(MyBitmap1);
+            MyBitmapGREY = BitmapDescriptorFactory.fromBitmap(MyBitmapGREY1);
+            BusBitmap = BitmapDescriptorFactory.fromBitmap(BusBitmap1);
+            BusBitmapGREY = BitmapDescriptorFactory.fromBitmap(BusBitmapGREY1);
+            BusBitmapERROR = BitmapDescriptorFactory.fromBitmap(BusBitmapERROR1);
 
 
         }
@@ -170,7 +181,7 @@ public class InfoClasses {
 
             if (Mode.RIDER()) {
                 marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                        .icon(Markers.BusBitmaps)
+                        .icon(Markers.BusBitmap)
                         .position(BusLocation)
                         .title(BusNumber)
                         .snippet("Runnning for " + School)
@@ -178,7 +189,7 @@ public class InfoClasses {
             } else {
 
                 marker = MainActivity.mMap.addMarker(new MarkerOptions()
-                        .icon(Active ? Markers.BusBitmaps : Markers.BusBitmapGREYs)
+                        .icon(Active ? Markers.BusBitmap : Markers.BusBitmapGREY)
                         .position(BusLocation)
                         .snippet(Active ? "Currently running route " + Route : "Not currently active")
                         .title(BusNumber)
@@ -207,12 +218,12 @@ public class InfoClasses {
 
             if (Active) {
 
-                marker.setIcon(Markers.BusBitmaps);
+                marker.setIcon(Markers.BusBitmap);
                 marker.setSnippet("Currently running route " + Route);
                 marker.setFlat(false);
 
             } else {
-                marker.setIcon(Markers.BusBitmapGREYs);
+                marker.setIcon(Markers.BusBitmapGREY);
                 marker.setSnippet("Not currently active");
                 marker.setFlat(true);
             }
@@ -261,6 +272,8 @@ public class InfoClasses {
         public static Hashtable<String, String> N2R = new Hashtable<>();
 
         public static Boolean updateAllLocations = false;
+
+        public static Hashtable<String, String[]> busErrors = new Hashtable<>();
 
         public static void updateBusPositions() {
 
@@ -535,6 +548,8 @@ public class InfoClasses {
         static public int Driver = 3;
         static public int Admin = 4;
         static public int LOGIN = 5;
+        static public int Text = 6;
+
         static public int ActiveFragment = -1;
 
         public static boolean Map() {
@@ -551,6 +566,10 @@ public class InfoClasses {
 
         public static boolean Driver() {
             return ActiveFragment == Driver;
+        }
+
+        public static boolean Text() {
+            return ActiveFragment == Text;
         }
 
         public static boolean Admin() {

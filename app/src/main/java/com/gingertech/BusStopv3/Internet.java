@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -669,13 +670,40 @@ public class Internet {
                     InfoClasses.Login.key + "\"}}";
 
             ws.send(dataOut);
-            Log.e("websocket", "Recieving all county locations");
+            Log.e("websocket", "Receiving all bus errors");
 
         } else {
 
             Log.e("websocket", "ERROR");
             CreateWebSocketConnection();
             retrieveBusErrors();
+
+
+        }
+    }
+
+    public static void removeBusError(String busNumber) {
+
+        if (SocketConnected) {
+
+            String county = InfoClasses.county;
+            busNumber = busNumber.substring(1);
+
+            String dataOut = "{\"action\" : \"removeBusError\", \"data\" : {\"county\" : \"" +
+                    county + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\" , \"busNumber\" : \"" +
+                    busNumber + "\"}}";
+
+            ws.send(dataOut);
+            Log.e("websocket", dataOut);
+
+            Log.e("websocket", "Removing bus error");
+
+        } else {
+
+            Log.e("websocket", "ERROR");
+            CreateWebSocketConnection();
+            removeBusError(busNumber);
 
 
         }
@@ -1043,9 +1071,6 @@ public class Internet {
                     }
 
                     InfoClasses.BusInfo.AssignedBusRoutes = myRoutes;
-                    Log.i("websocket", "jo");
-
-
                 }
 
                 if (text.contains("allBusLocations")) {
@@ -1095,6 +1120,8 @@ public class Internet {
                             InfoClasses.Login.gatheredMode = 1;
                             InfoClasses.BusInfo.BusDriver = object.getString("name");
                             InfoClasses.Bluetooth.bluetoothAddress = object.getString("address");
+                            InfoClasses.BusInfo.BusNumber = object.getString("busNumber");
+
 
                         } else {
 
@@ -1111,8 +1138,21 @@ public class Internet {
                         Log.i("tag", "Just UNsuccessfully logged in!");
 
                     }
+                }
 
+                if (text.contains("allBusErrors")) {
+                    JSONObject big = jObject.getJSONObject("allBusErrors");
+                    JSONObject object = big.getJSONObject("data");
 
+                    int length = big.getInt("number");
+                    String[] output = new String[3];
+                    for(int x = 0; x < length; x++){
+
+                        output[0] = object.getJSONObject(Integer.toString(x)).getString("BusNumber");
+                        output[1] = object.getJSONObject(Integer.toString(x)).getString("Addy");
+                        output[2] = object.getJSONObject(Integer.toString(x)).getString("time");
+                        InfoClasses.AdminInfo.busErrors.put(output[0], output);
+                    }
                 }
 
                 if (text.contains("Login Error")) {

@@ -37,15 +37,13 @@ public class MapFragment extends Fragment {
     //the one true MainActivity
     public static MainActivity mainActivity;
 
-    View root;
-
     private MapViewModel mapViewModel;
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         temp = null;
         Last_Bus_Current_Location = null;
 
-        root = inflater.inflate(R.layout.map_fragment, container, false);
+        View root = inflater.inflate(R.layout.map_fragment, container, false);
 
         try {
             MainActivity.mapSupportFragment = (SupportMapFragment)

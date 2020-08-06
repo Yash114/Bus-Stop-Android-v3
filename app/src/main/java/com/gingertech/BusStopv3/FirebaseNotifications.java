@@ -119,7 +119,7 @@ public class FirebaseNotifications extends FirebaseMessagingService {
         String time  = Calendar.getInstance().getTime().toString();
         String addy = InfoClasses.BusInfo.LastGatheredAddress;
 
-        Internet.sendBusError(time, addy);
+        Internet.sendBusError(addy, time);
         InfoClasses.ToastMessages.sendingBusError.show();
 
         Map<String, String> data = new HashMap<>();
@@ -151,13 +151,18 @@ public class FirebaseNotifications extends FirebaseMessagingService {
 
         // Create the arguments to the callable function.
         Map<String, String> data = new HashMap<>();
+        String time  = Calendar.getInstance().getTime().toString();
+        String addy = InfoClasses.BusInfo.LastGatheredAddress;
+
+        Internet.sendBusError(addy, time);
+        InfoClasses.ToastMessages.sendingBusError.show();
+
         data.put("token", token);
         data.put("county", InfoClasses.county);
         data.put("currentRoute", InfoClasses.BusInfo.CurrentRoute);
-        data.put("addy", "unresolved");
-        data.put("time", Calendar.getInstance().getTime().toString());
+        data.put("addy", addy);
+        data.put("time", time );
         data.put("busNumber", InfoClasses.BusInfo.BusNumber);
-
         InfoClasses.ToastMessages.sendingBusError_noloc.show();
 
         mFunctions

@@ -11,24 +11,24 @@
     android:paddingBottom="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:src="@drawable/busstop_logo"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:contentDescription="@string/nav_header_desc"
-        app:srcCompat="@mipmap/ic_launcher_round"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="0dp"/>
+<!--    <ImageView-->
+<!--        android:layout_width="80dp"-->
+<!--        android:layout_height="80dp"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        android:layout_marginBottom="0dp"-->
+<!--        android:background="@drawable/busstop_logo"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_above="@id/theText" />-->
+
 
     <TextView
+        android:id="@+id/theText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/imageView"
+        android:layout_marginTop="12dp"
         android:text="Control Panel"
         android:textSize="24dp"
-        android:textColor="#FFFFFF"/>
+        android:textColor="#FFFFFF" />
 
 </RelativeLayout>

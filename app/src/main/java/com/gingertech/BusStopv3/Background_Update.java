@@ -121,6 +121,7 @@ public class Background_Update extends IntentService {
             });
         }
 
+
         while (counter <= 20) {
 
                 if (InfoClasses.Bluetooth.isConnected) {
