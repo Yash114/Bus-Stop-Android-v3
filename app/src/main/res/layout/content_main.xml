@@ -23,7 +23,8 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_margin="16dp"
-        android:background="@drawable/buttonshape">
+        android:background="@drawable/buttonshape"
+        android:clickable="false">
 
         <pl.droidsonroids.gif.GifImageView
             android:layout_width="32dp"
@@ -47,7 +48,8 @@
             android:textSize="24dp"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
-            android:layout_centerVertical="true"/>
+            android:layout_centerVertical="true"
+            android:clickable="false"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -58,7 +60,8 @@
             android:textSize="24dp"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
-            android:layout_centerVertical="true"/>
+            android:layout_centerVertical="true"
+            android:clickable="false"/>
 
         <ImageButton
             android:layout_width="24dp"

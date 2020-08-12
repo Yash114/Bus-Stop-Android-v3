@@ -48,6 +48,8 @@ public class MapFragment extends Fragment {
         try {
             MainActivity.mapSupportFragment = (SupportMapFragment)
                     getChildFragmentManager().findFragmentById(R.id.map);
+            mainActivity.Instantiate_Map_Methods();
+
 
             Log.i("map", "created");
 
@@ -60,7 +62,6 @@ public class MapFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        mainActivity.Instantiate_Map_Methods();
         MainActivity.UpdatesAvailable = true;
         MainActivity.markerSelected = false;
         if(InfoClasses.Status.ActiveFragment != -1) {
@@ -121,6 +122,8 @@ public class MapFragment extends Fragment {
     public static void RecreateMapObjects() {
 
         MainActivity.mMap.clear();
+
+        InfoClasses.MyInfo.recreateMarkers();
 
         InfoClasses.MyInfo.marker = MainActivity.mMap.addMarker(new MarkerOptions()
                 .icon(InfoClasses.Markers.MyBitmap)

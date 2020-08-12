@@ -19,12 +19,23 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
+import java.util.Objects;
 
 public class FirebaseNotifications extends FirebaseMessagingService {
 
     private static FirebaseFunctions mFunctions;
     private static String token;
+
+    private HashMap<String, String> notificationKeys = new HashMap<>();
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        notificationKeys.put("Admin Alert", "876ytygrjhIUOEDV");
+    }
 
     @Override
     public void onNewToken(String s) {
@@ -50,7 +61,15 @@ public class FirebaseNotifications extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        Log.e("notif", "I just received something");
+        String notificationType = remoteMessage.getData().get("notificationType");
+
+        Looper.prepare();
+        if(notificationType!= null){
+            if(notificationType.equals(notificationKeys.get("Admin Alert"))){
+
+                Internet.retrieveBusErrors();
+            }
+        }
     }
 
     public static void initialize(){
@@ -179,5 +198,30 @@ public class FirebaseNotifications extends FirebaseMessagingService {
                     }
                 });
 
+    }
+
+    public static void addToRoute() {
+        // Create the arguments to the callable function.
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("county", InfoClasses.county);
+
+        for (String x : InfoClasses.MyInfo.BusRoutes) {
+
+            data.put("busRoute", x);
+            mFunctions
+                    .getHttpsCallable("addDeviceToRoute")
+                    .call(data)
+                    .continueWith(new Continuation<HttpsCallableResult, String>() {
+                        @Override
+                        public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                            // This continuation runs on either success or failure, but if the task
+                            // has failed then getResult() will throw an Exception which will be
+                            // propagated down.
+                            String result = (String) task.getResult().getData();
+                            return result;
+                        }
+                    });
+        }
     }
 }

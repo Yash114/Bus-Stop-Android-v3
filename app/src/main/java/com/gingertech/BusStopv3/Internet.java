@@ -578,7 +578,7 @@ public class Internet {
 
             String dataOut = "{\"action\" : \"refresh\"}}";
 
-            Log.e("websocket", "just logged out");
+            Log.e("websocket", "just refreshed");
             ws.send(dataOut);
         } else {
 
@@ -720,7 +720,8 @@ public class Internet {
                     busRouteID + "\" , \"lat\" : \"" +
                     latLng.latitude + "\" , \"lng\" : \"" +
                     latLng.longitude + "\" , \"busNumber\" : \"" +
-                    busNumber + "\"}}";
+                    busNumber + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
 
             Log.e("websocket", dataOut);
             ws.send(dataOut);
@@ -745,7 +746,8 @@ public class Internet {
                     busRouteID + "\" , \"location\" : \"" +
                     Addy + "\" , \"time\" : \"" +
                     time + "\" , \"busNumber\" : \"" +
-                    busNumber + "\"}}";
+                    busNumber + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
 
             Log.e("websocket", dataOut);
             ws.send(dataOut);
@@ -800,7 +802,8 @@ public class Internet {
             String dataOut = "{\"action\" : \"joinRoute\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"routeID\" : \"" +
                     busRouteID + "\", \"busNumber\" : \"" +
-                    busNumber + "\", \"exalt\" : \"1\"}}";
+                    busNumber + "\", \"exalt\" : \"" +
+                    "1\" , \"key\" : \"" + InfoClasses.Login.key + "\"}}";
 
             ws.send(dataOut);
             Log.e("websocket", "Connected to route " + busRouteID);
@@ -847,7 +850,8 @@ public class Internet {
 
             String dataOut = "{\"action\" : \"joinBus\" , \"data\" : {\"county\" : \"" +
                     county + "\" , \"busNumber\" : \"" +
-                    busNumber + "\"}}";
+                    busNumber + "\" , \"key\" : \"" +
+                    InfoClasses.Login.key + "\"}}";
 
             Log.e("websocket",dataOut);
             ws.send(dataOut);
@@ -873,7 +877,8 @@ public class Internet {
                         county + "\" , \"busNumber\" : \"" +
                         busNumber + "\" , \"lat\" : \"" +
                         location.latitude + "\" , \"lng\" : \"" +
-                        location.longitude + "\"}}";
+                        location.longitude + "\" , \"key\" : \"" +
+                        InfoClasses.Login.key + "\"}}";
                 Log.i("websocket", "Bus exit");
 
                 ws.send(dataOut);
@@ -986,6 +991,7 @@ public class Internet {
                             newBus.Active = object.getString("Disconnect").equals("0");
                             InfoClasses.MyInfo.myBuses.put(RouteID, newBus);
                             newBus.Route = RouteID;
+                            newBus.updates = true;
 
                             InfoClasses.MyInfo.NewBus = true;
                             Log.e("tag", "Created a new bus instance");

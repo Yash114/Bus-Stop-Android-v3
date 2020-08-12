@@ -235,7 +235,6 @@ public class InfoClasses {
                 final long duration = 1000;
 
                 final BounceInterpolator interpolator = new BounceInterpolator();
-                marker.setVisible(true);
 
                 double Lat = BusLocation.latitude - marker.getPosition().latitude;
                 double Lng = BusLocation.longitude - marker.getPosition().longitude;
@@ -342,6 +341,8 @@ public class InfoClasses {
         public static List<String> ZonedSchools = new ArrayList<>();
 
         public static List<String> SchoolURL = new ArrayList<>();
+
+        //route : bus
         public static Hashtable<String, Buses> myBuses = new Hashtable<>();
 
         public static String Address;

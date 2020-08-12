@@ -390,7 +390,7 @@ public class AdminPanelFragment extends Fragment implements AdapterView.OnItemSe
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                requireActivity().runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     public void run() {
 
                         if (InfoClasses.BusInfo.BusDriver != null) {

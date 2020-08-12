@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static int numberOfClicks = 0;
 
     public static ArrayList<Integer> items = new ArrayList<>();
-    public static ArrayList<Boolean> activeArray = new ArrayList<>(Arrays.asList(true,false,false,false,false,false,false));
+    public static ArrayList<Boolean> activeArray = new ArrayList<>(Arrays.asList(true, false, false, false, false, false, false));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Internet.CreateWebSocketConnection();
         InfoClasses.ToastMessages.init(this);
         FirebaseNotifications.initialize();
+        StartRefresh();
 
         items.clear();
         items.add(R.id.nav_map);
@@ -131,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         items.add(R.id.nav_Text);
         items.add(R.id.nav_Logout);
 
-        if(InfoClasses.Mode.Rider_Driver != -1){
+        if (InfoClasses.Mode.Rider_Driver != -1) {
 
             switch (InfoClasses.Mode.Rider_Driver) {
 
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
 
-                if(InfoClasses.Mode.DRIVER()){
+                if (InfoClasses.Mode.DRIVER()) {
 
                     Vibrator j = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     j.vibrate(100);
@@ -187,11 +188,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     }, 3000);
 
-                    if(InfoClasses.BusInfo.BusLocation == null) {
+                    if (InfoClasses.BusInfo.BusLocation == null) {
                         new Timer().schedule(new TimerTask() {
                             @Override
                             public void run() {
-                                if(InfoClasses.BusInfo.BusLocation != null) {
+                                if (InfoClasses.BusInfo.BusLocation != null) {
                                     Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
                                     RGC.execute(InfoClasses.BusInfo.BusLocation.latitude, InfoClasses.BusInfo.BusLocation.longitude);
 
@@ -217,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 Internet.ReverseGeoCode RGC = new Internet.ReverseGeoCode();
                                 RGC.execute(InfoClasses.BusInfo.BusLocation.latitude, InfoClasses.BusInfo.BusLocation.longitude);
 
-                                if(InfoClasses.BusInfo.BusLocation != null) {
+                                if (InfoClasses.BusInfo.BusLocation != null) {
                                     new Timer().schedule(new TimerTask() {
                                         @Override
                                         public void run() {
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switch (Title) {
 
                     case ("Main Map"):
-                        mapButton.callOnClick();
+                        ChangeToMapView();
 
                         break;
 
@@ -311,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
 
                     case ("Comms."):
-                        if(InfoClasses.Mode.ADMIN()) {
+                        if (InfoClasses.Mode.ADMIN()) {
                             ContainerViewID = new AdminComms();
                             fragmentID = R.id.nav_adminDashBoard;
                         } else {
@@ -415,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onDrawerSlide(View drawerView, float slideOffset) {
                 super.onDrawerSlide(drawerView, slideOffset);
 
-                if(InfoClasses.Status.Login()){
+                if (InfoClasses.Status.Login()) {
 
                     drawer.closeDrawer(drawerView);
                     FragmentTransaction trans = fragmentManager.beginTransaction();
@@ -425,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        for(int x = 0; x < items.size(); x++) {
+        for (int x = 0; x < items.size(); x++) {
             Log.e("tag", String.valueOf(x));
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(false);
         }
@@ -485,7 +486,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         String county = SaveData.ReadCounty();
 
-        if(county != null){
+        if (county != null) {
 
             InfoClasses.commitCounty(county);
         }
@@ -582,7 +583,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             buildGoogleApiClient();
                         }
 
-                        if(InfoClasses.Mode.RIDER() && InfoClasses.MyInfo.savedLocation == null){
+                        if (InfoClasses.Mode.RIDER() && InfoClasses.MyInfo.savedLocation == null) {
 
                             Log.i("tag", "abuFaoeu bg9u");
                             mMap.setMyLocationEnabled(true);
@@ -690,9 +691,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     focus = InfoClasses.countyCenters.get(InfoClasses.county);
                 } else {
 
-                    FragmentTransaction trans = fragmentManager.beginTransaction();
-                    trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-                    trans.replace(R.id.nav_host_fragment, new MapFragment()).commit();
                 }
             }
         });
@@ -762,12 +760,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 v.vibrate(100);
                             }
                             markerSelected = false;
-                        } else if (marker.getTag() == InfoClasses.BusInfo.marker.getTag()) {
-
-                            FragmentTransaction trans = fragmentManager.beginTransaction();
-                            trans.setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out);
-                            trans.replace(R.id.nav_host_fragment, new BusControlFragment()).commit();
-
                         } else {
                             markerSelected = true;
                             focus = marker.getPosition();
@@ -781,12 +773,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
         updates(true);
-        StartRefresh();
 
-        if(InfoClasses.Mode.RIDER()){
+        if (InfoClasses.Mode.RIDER()) {
 
 
-        } else if(InfoClasses.Mode.DRIVER()){
+        } else if (InfoClasses.Mode.DRIVER()) {
 
             InfoClasses.BusInfo.marker = googleMap.addMarker(new MarkerOptions()
                     .icon(InfoClasses.BusInfo.CurrentRoute == null ? InfoClasses.Markers.BusBitmapGREY : InfoClasses.Markers.BusBitmap)
@@ -800,6 +791,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             InfoClasses.AdminInfo.recreateMarkers();
         }
+
+        MapFragment.RecreateMapObjects();
+
     }
 
     public boolean checkLocationPermission() {
@@ -825,7 +819,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void StartRefresh() {
 
-        MapFragment.RecreateMapObjects();
 
         Timer timer = new Timer();
         TimerTask myTask = new TimerTask() {
@@ -854,7 +847,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     static public void ModeJustChanged() {
 
 
-        for(int x = 0; x < items.size(); x++) {
+        for (int x = 0; x < items.size(); x++) {
             Log.e("tag", String.valueOf(x) + "uabeish");
             Log.e("tag", MainActivity.activeArray.get(x) ? "yes" : "no");
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(true);
@@ -907,16 +900,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public static void updates(boolean bypass) {
 
-        zoom = mMap.getCameraPosition().zoom;
+        if (mMap != null) {
+            Log.e("tag", "fly");
+            zoom = mMap.getCameraPosition().zoom;
 
-        if(!InfoClasses.Mode.DRIVER()){
-            if(panicButton.getVisibility() != View.GONE)
-                panicButton.setVisibility(View.GONE);
-        }
+            if (!InfoClasses.Mode.DRIVER()) {
+                if (panicButton.getVisibility() != View.GONE)
+                    panicButton.setVisibility(View.GONE);
+            }
             if (InfoClasses.Mode.DRIVER()) {
 
-                if(!InfoClasses.Bluetooth.isConnected){
-                    if(panicButton.getVisibility() != View.GONE)
+                if (!InfoClasses.Bluetooth.isConnected) {
+                    if (panicButton.getVisibility() != View.GONE)
                         panicButton.setVisibility(View.GONE);
                 } else {
 
@@ -1004,6 +999,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             bus.Active = false;
                             bus.marker.setVisible(false);
                             InfoClasses.MyInfo.myBuses.remove(route);
+                        } else {
+
+                            bus.Active = true;
                         }
                     }
 
@@ -1011,10 +1009,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         UpdatesAvailable = false;
                         if (InfoClasses.MyInfo.NewBus || bypass) {
-
                             InfoClasses.MyInfo.NewBus = false;
-                            InfoClasses.MyInfo.recreateMarkers();
-                            MapFragment.RecreateMapObjects();
                             InfoClasses.MyInfo.marker.setVisible(true);
                             InfoClasses.MyInfo.marker.setPosition(InfoClasses.MyInfo.savedLocation);
                             Log.i("tag", "fhuvibyhd");
@@ -1025,7 +1020,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         ArrayList<LatLng> positions = new ArrayList<>();
                         for (InfoClasses.Buses bus : InfoClasses.MyInfo.myBuses.values()) {
 
-                            if(bus.Active) {
+                            if (bus.Active) {
                                 positions.add(bus.BusLocation);
                             }
                         }
@@ -1058,30 +1053,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     UpdatesAvailable = false;
 
-                        if (bypass || InfoClasses.AdminInfo.updateAllLocations) {
-                            InfoClasses.AdminInfo.updateAllLocations = false;
-                            InfoClasses.AdminInfo.recreateMarkers();
+                    if (bypass || InfoClasses.AdminInfo.updateAllLocations) {
+                        InfoClasses.AdminInfo.updateAllLocations = false;
+                        InfoClasses.AdminInfo.recreateMarkers();
 
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(focus)
+                                .zoom(10.3f) // Gets the correct zoom factor from the distance vairabe
+                                .bearing(0)                // Sets the orientation of the camera to east
+                                .build();                   // Creates a CameraPosition from the builder
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    } else {
+
+                        if (markerSelected) {
                             CameraPosition cameraPosition = new CameraPosition.Builder()
                                     .target(focus)
-                                    .zoom(10.3f) // Gets the correct zoom factor from the distance vairabe
+                                    .zoom(zoom) // Gets the correct zoom factor from the distance vairabe
                                     .bearing(0)                // Sets the orientation of the camera to east
                                     .build();                   // Creates a CameraPosition from the builder
                             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                        } else {
-
-                            if (markerSelected) {
-                                CameraPosition cameraPosition = new CameraPosition.Builder()
-                                        .target(focus)
-                                        .zoom(zoom) // Gets the correct zoom factor from the distance vairabe
-                                        .bearing(0)                // Sets the orientation of the camera to east
-                                        .build();                   // Creates a CameraPosition from the builder
-                                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-                            }
                         }
+                    }
 
-                        InfoClasses.AdminInfo.updateBusPositions();
+                    InfoClasses.AdminInfo.updateBusPositions();
                 }
             }
         }
     }
+}

@@ -3,6 +3,7 @@ package com.gingertech.BusStopv3.ui.RiderBus;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,12 +17,14 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.gingertech.BusStopv3.FirebaseNotifications;
 import com.gingertech.BusStopv3.InfoClasses;
 import com.gingertech.BusStopv3.Internet;
 import com.gingertech.BusStopv3.MainActivity;
 import com.gingertech.BusStopv3.R;
 import com.gingertech.BusStopv3.SaveData;
 
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -77,19 +80,22 @@ public class RiderFragment extends Fragment {
         textViews = new TextView[]{route1_school, route2_school, route3_school};
 
         route1_check = root.findViewById(R.id.JoinedRoute1_check);
-        route1_check = root.findViewById(R.id.JoinedRoute2_check);
-        route1_check = root.findViewById(R.id.JoinedRoute3_check);
+        route2_check = root.findViewById(R.id.JoinedRoute2_check);
+        route3_check = root.findViewById(R.id.JoinedRoute3_check);
         checkBoxes = new CheckBox[]{route1_check, route2_check, route3_check};
 
         if(InfoClasses.MyInfo.savedLocation != null) {
             if (InfoClasses.MyInfo.BusRoutes != null) {
 
+                Log.i("tag", InfoClasses.MyInfo.myBuses.keySet().toString());
+
                 int index = 0;
                 for (String routes : InfoClasses.MyInfo.BusRoutes) {
 
-                    if (routes != "null") {
+                    if (!routes.equals("null")) {
                         layouts[index].setVisibility(View.VISIBLE);
                         textViews[index].setText(routes);
+                        checkBoxes[index].setChecked(InfoClasses.MyInfo.myBuses.containsKey(routes));
                     }
 
                     index += 1;
@@ -163,6 +169,7 @@ public class RiderFragment extends Fragment {
                                         }
 
                                         Internet.joinRoute_AsRider();
+                                        FirebaseNotifications.addToRoute();
                                         SaveData.SaveBusRoutes();
 
                                     } else {
