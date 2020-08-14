@@ -121,6 +121,8 @@ public class RiderFragment extends Fragment {
                         index += 1;
 
                     }
+                    FirebaseNotifications.removeFromRoute();
+
 
                     InfoClasses.MyInfo.ZonedSchools.clear();
                     InfoClasses.MyInfo.ZonedSchools.add("null");
@@ -154,7 +156,6 @@ public class RiderFragment extends Fragment {
                                         MainActivity.UpdatesAvailable = true;
 
                                         Toast.makeText(getContext(), "You buses were added successfully", Toast.LENGTH_SHORT).show();
-                                        Internet.joinRoute_AsRider();
 
                                         int index = 0;
                                         for (String routes : InfoClasses.MyInfo.BusRoutes) {
@@ -169,6 +170,7 @@ public class RiderFragment extends Fragment {
                                         }
 
                                         Internet.joinRoute_AsRider();
+//                                        FirebaseNotifications.removeFromRoute();
                                         FirebaseNotifications.addToRoute();
                                         SaveData.SaveBusRoutes();
 

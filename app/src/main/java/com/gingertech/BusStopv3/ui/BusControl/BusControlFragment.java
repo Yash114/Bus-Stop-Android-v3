@@ -22,6 +22,7 @@ import androidx.annotation.RequiresApi;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.gingertech.BusStopv3.Background_Update;
+import com.gingertech.BusStopv3.FirebaseNotifications;
 import com.gingertech.BusStopv3.InfoClasses;
 import com.gingertech.BusStopv3.Internet;
 import com.gingertech.BusStopv3.R;
@@ -363,6 +364,7 @@ public class BusControlFragment extends androidx.fragment.app.Fragment {
                                             }
                                         }
 
+                                        FirebaseNotifications.sendAlertToRiders();
                                         Toast.makeText(getContext(), "Started Route: " + InfoClasses.BusInfo.CurrentRoute, Toast.LENGTH_LONG).show();
                                         InfoClasses.Status.inRoute = true;
                                         timer.cancel();

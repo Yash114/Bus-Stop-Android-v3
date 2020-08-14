@@ -282,7 +282,6 @@ public class InfoClasses {
                     bus.updates = false;
                     bus.marker.setVisible(true);
                     bus.updatePosition();
-                    Log.e("tag", "Update");
                 }
             }
         }
@@ -425,8 +424,6 @@ public class InfoClasses {
                     if (!isConnected) {
                         if (result.getDevice().getAddress().equals(bluetoothAddress)) {
                             connectedDevice = result.getDevice();
-                            Log.e("Bluetooth", result.getDevice().getAddress());
-
                             Log.e("Bluetooth", "Bluetooth Device Found");
 
                             isConnected = true;
@@ -461,13 +458,13 @@ public class InfoClasses {
                             if (devices.getAddress().equals(bluetoothAddress)) {
                                 availableDevices.clear();
                                 connectedDevice = devices;
-                                Log.e("Bluetooth", devices.getAddress());
 
                                 Log.e("Bluetooth", "Bluetooth Device Found");
 
                                 isConnected = true;
 
                                 Log.i("Bluetooth", "Successfully Connected to" + BusInfo.BusNumber);
+                                FirebaseNotifications.addABus();
                                 return;
                             }
 
@@ -633,6 +630,7 @@ public class InfoClasses {
                     MyInfo.ZonedSchools.addAll(buses);
 
                     Internet.joinRoute_AsRider();
+                    FirebaseNotifications.addToRoute();
                 }
 
                 LatLng savedPos = ReadMySavedPos();
@@ -640,7 +638,6 @@ public class InfoClasses {
                 if (savedPos != null) {
                     if (savedPos.latitude != 0) {
 
-                        Log.i("Save", SaveData.ReadMySavedAddy());
                         MyInfo.savedLocation = savedPos;
                         MyInfo.CurrentLocation = savedPos;
                         MyInfo.Address = SaveData.ReadMySavedAddy();
@@ -670,6 +667,7 @@ public class InfoClasses {
 
                 Toast.makeText(context, "You just reverted back to Rider Mode", Toast.LENGTH_SHORT).show();
                 FirebaseNotifications.removeAsAdmin();
+
 
             }
         }
@@ -711,6 +709,8 @@ public class InfoClasses {
 
                 Markers.getMarkers(context);
                 FirebaseNotifications.removeAsAdmin();
+                FirebaseNotifications.removeFromRoute();
+
 
         }
 
@@ -749,6 +749,7 @@ public class InfoClasses {
 
                 Toast.makeText(context, "You just entered the secret ADMIN MODE", Toast.LENGTH_SHORT).show();
                 FirebaseNotifications.addAsAdmin();
+                FirebaseNotifications.removeFromRoute();
 
             }
         }

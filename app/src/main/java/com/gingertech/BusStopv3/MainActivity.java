@@ -371,7 +371,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 if (!InfoClasses.Status.Login()) {
 
-                    Log.i("tag", Integer.toString(numberOfClicks));
                     if (numberOfClicks == 0) {
                         new Timer().schedule(new TimerTask() {
                             @Override
@@ -427,7 +426,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         for (int x = 0; x < items.size(); x++) {
-            Log.e("tag", String.valueOf(x));
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(false);
         }
 
@@ -478,7 +476,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void Instantiate_Save_Methods() {
-        Log.e("tag", "doing");
 
         saveData = new SaveData(getApplicationContext());
 
@@ -520,7 +517,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
 
             mapSupportFragment.getMapAsync(this);
-            Log.i("map", "created");
 
         } catch (NullPointerException e) {
 
@@ -546,7 +542,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         InfoClasses.Markers.getMarkers(getBaseContext());
-        Log.i("map", "Maps: Success");
     }
 
     @Override
@@ -585,7 +580,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         if (InfoClasses.Mode.RIDER() && InfoClasses.MyInfo.savedLocation == null) {
 
-                            Log.i("tag", "abuFaoeu bg9u");
                             mMap.setMyLocationEnabled(true);
                         }
 
@@ -704,7 +698,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             MainActivity.mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
-                    Log.i("tag", marker.getTag().toString());
 
                     if (InfoClasses.Status.Map()) {
 
@@ -786,7 +779,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .snippet("Currently performing route: " + InfoClasses.BusInfo.CurrentRoute)
                     .visible(true));
 
-            Log.i("tag", "im here");
         } else {
 
             InfoClasses.AdminInfo.recreateMarkers();
@@ -848,8 +840,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         for (int x = 0; x < items.size(); x++) {
-            Log.e("tag", String.valueOf(x) + "uabeish");
-            Log.e("tag", MainActivity.activeArray.get(x) ? "yes" : "no");
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(true);
 
             MainActivity.navigationView.getMenu().findItem(MainActivity.items.get(x)).setVisible(MainActivity.activeArray.get(x));
@@ -901,7 +891,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static void updates(boolean bypass) {
 
         if (mMap != null) {
-            Log.e("tag", "fly");
             zoom = mMap.getCameraPosition().zoom;
 
             if (!InfoClasses.Mode.DRIVER()) {
@@ -1012,7 +1001,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             InfoClasses.MyInfo.NewBus = false;
                             InfoClasses.MyInfo.marker.setVisible(true);
                             InfoClasses.MyInfo.marker.setPosition(InfoClasses.MyInfo.savedLocation);
-                            Log.i("tag", "fhuvibyhd");
                         }
 
                         InfoClasses.MyInfo.updateBusPositions();

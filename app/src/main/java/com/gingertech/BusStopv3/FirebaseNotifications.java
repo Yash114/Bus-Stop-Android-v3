@@ -47,10 +47,6 @@ public class FirebaseNotifications extends FirebaseMessagingService {
 
                         // Get new Instance ID token
                         token = task.getResult().getToken();
-
-                        // Log and toast
-                        Log.i("tag", token);
-
                     }
 
                 });
@@ -209,6 +205,7 @@ public class FirebaseNotifications extends FirebaseMessagingService {
         for (String x : InfoClasses.MyInfo.BusRoutes) {
 
             data.put("busRoute", x);
+
             mFunctions
                     .getHttpsCallable("addDeviceToRoute")
                     .call(data)
@@ -223,5 +220,74 @@ public class FirebaseNotifications extends FirebaseMessagingService {
                         }
                     });
         }
+    }
+
+    public static void removeFromRoute() {
+        // Create the arguments to the callable function.
+        Map<String, Object> data = new HashMap<>();
+        data.put("token", token);
+        data.put("county", InfoClasses.county);
+
+
+        for (String x : InfoClasses.MyInfo.BusRoutes) {
+
+            data.put("busRoute", x);
+
+            mFunctions
+                    .getHttpsCallable("removeDeviceFromRoute")
+                    .call(data)
+                    .continueWith(new Continuation<HttpsCallableResult, String>() {
+                        @Override
+                        public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                            // This continuation runs on either success or failure, but if the task
+                            // has failed then getResult() will throw an Exception which will be
+                            // propagated down.
+                            String result = (String) task.getResult().getData();
+                            return result;
+                        }
+                    });
+        }
+    }
+
+    public static void addABus() {
+        // Create the arguments to the callable function.
+        Map<String, Object> data = new HashMap<>();
+        data.put("county", InfoClasses.county);
+        data.put("busRoute", InfoClasses.BusInfo.CurrentRoute);
+        mFunctions
+                .getHttpsCallable("createBusGroup")
+                .call(data)
+                .continueWith(new Continuation<HttpsCallableResult, String>() {
+                    @Override
+                    public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                        // This continuation runs on either success or failure, but if the task
+                        // has failed then getResult() will throw an Exception which will be
+                        // propagated down.
+                        String result = (String) task.getResult().getData();
+                        return result;
+                    }
+                });
+    }
+
+    public static void sendAlertToRiders() {
+        // Create the arguments to the callable function.
+        Map<String, Object> data = new HashMap<>();
+        data.put("county", InfoClasses.county);
+        data.put("currentRoute", InfoClasses.BusInfo.CurrentRoute);
+        data.put("busNumber", InfoClasses.BusInfo.BusNumber);
+
+        mFunctions
+                .getHttpsCallable("saveAndSendBusAlert_ForRiders")
+                .call(data)
+                .continueWith(new Continuation<HttpsCallableResult, String>() {
+                    @Override
+                    public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                        // This continuation runs on either success or failure, but if the task
+                        // has failed then getResult() will throw an Exception which will be
+                        // propagated down.
+                        String result = (String) task.getResult().getData();
+                        return result;
+                    }
+                });
     }
 }
